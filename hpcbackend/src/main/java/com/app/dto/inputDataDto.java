@@ -3,6 +3,8 @@ package com.app.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,5 +21,7 @@ public class inputDataDto {
 	public String imagename;
 	public String imagetag;
 	public List<String> dockerfile;
+	public String buildcommand;
+	public String dockerfilename;
 
 }
