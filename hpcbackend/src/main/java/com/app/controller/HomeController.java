@@ -35,6 +35,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.app.dto.buildResponse;
 import com.app.dto.inputDataDto;
 import com.app.dto.responseDto;
 import com.app.dto.statusDto;
@@ -225,8 +226,9 @@ public class HomeController {
                 System.out.println("Build ID: " + buildId);
             }
          
-
-    		return new ResponseEntity<>(buildId, response.getStatusCode());
+            buildResponse buildResp = new buildResponse();
+            buildResp.setBuildId(buildId);
+    		return new ResponseEntity<>(buildResp, response.getStatusCode());
             }
             catch(RestClientException e) {
             	e.printStackTrace();
@@ -245,13 +247,7 @@ public class HomeController {
 	}
 	
 	private int parseBuildIdFromJson(String jsonResponse) {
-	    // Parse the JSON response and extract the build ID
-	    // This is a simplified example assuming a simple JSON structure
-	    // Adjust this based on the actual JSON response structure
-//	    JsonObject jsonObject = new JsonObject(jsonResponse);
-//	    JsonObject executable = jsonObject.getJSONObject("executable");
-//	    int buildId = executable.getInt("number");
-	    
+  
 	    
 	    responseDto jsonObject = null;
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -316,13 +312,13 @@ public class HomeController {
 		}
         String result = statusObject.getResult();
 		if ("SUCCESS".equals(result)) {
-		    return new ResponseEntity<>("Pipeline completed successfully.", HttpStatus.OK);
+		    return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
 		} else if ("FAILURE".equals(result)) {
-		    return new ResponseEntity<>("Pipeline failed.", HttpStatus.OK);
+		    return new ResponseEntity<>("FAILURE", HttpStatus.OK);
 		} else if ("UNSTABLE".equals(result)) {
-		    return new ResponseEntity<>("Pipeline completed, but with some issues.", HttpStatus.OK);
+		    return new ResponseEntity<>("UNSTABLE", HttpStatus.OK);
 		} else if (result == null) {
-		    return new ResponseEntity<>("Pipeline is still in progress.", HttpStatus.OK);
+		    return new ResponseEntity<>("INPROGRESS", HttpStatus.OK);
 		} else {
 		    return new ResponseEntity<>("Unknown result: " + result, HttpStatus.OK);
 		}
