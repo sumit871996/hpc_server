@@ -198,6 +198,8 @@ public class HomeController {
                 // Poll the /queue/item/71/api/json endpoint to get build details
                 ResponseEntity<String> queueItemResponse = restTemplate.getForEntity(queueItemUrl, String.class);
                 queueItemBody = queueItemResponse.getBody();
+                
+                System.out.println(queueItemBody);
 
                 // Check if "executable" field is present in the JSON response
                 if (queueItemBody.contains("executable")) {
@@ -296,7 +298,7 @@ public class HomeController {
         RestTemplate restTemplate = new RestTemplate(requestFactory);
 		
 	    ResponseEntity<String> statusResponse = restTemplate.getForEntity(url, String.class);
-		
+		System.out.println(statusResponse);
 		statusDto statusObject = null;
 		ObjectMapper objectMapper = new ObjectMapper();
         try {
