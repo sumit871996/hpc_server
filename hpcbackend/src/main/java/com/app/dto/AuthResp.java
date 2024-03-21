@@ -1,5 +1,7 @@
 package com.app.dto;
 
+import com.app.entities.Role;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,14 +15,14 @@ public class AuthResp {
 	private String message;
 	private String token;
 	private Long id;
-	private String role;
+	private Role role;
 	
 	
 	public void setId(Long id) {
 		this.id = id;
 	}
 	
-	public void setRole(String role) {
+	public void setRole(Role role) {
 		this.role = role;
 	}
 	
@@ -33,7 +35,7 @@ public class AuthResp {
 	}
 	
 	
-	public AuthResp(String message, String token, Long id, String role )
+	public AuthResp(String message, String token, Long id, Role role )
 	{
 	this.token = token;
 	this.message = message;
