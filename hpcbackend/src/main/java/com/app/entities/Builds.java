@@ -28,4 +28,7 @@ public class Builds {
 	@Column(nullable = false)
 	private LocalDateTime timestamp = LocalDateTime.now();
 
+	@Column(nullable = false)
+	private String docekerUser;
+	
 }

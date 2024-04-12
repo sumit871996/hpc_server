@@ -7,6 +7,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.apache.tomcat.util.json.JSONParser;
 import org.apache.tomcat.util.json.ParseException;
@@ -35,10 +40,18 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.app.dao.BuildsRepository;
+import com.app.dao.UsersRepository;
 import com.app.dto.buildResponse;
 import com.app.dto.inputDataDto;
 import com.app.dto.responseDto;
 import com.app.dto.statusDto;
+import com.app.entities.Builds;
+import com.app.entities.Users;
+import com.app.entities.buildStatusEnum;
+import com.app.service.BuildServiceImpl;
+import com.app.service.IBuildService;
+import com.app.service.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,8 +62,6 @@ import com.google.gson.JsonParser;
 
 import jakarta.websocket.server.PathParam;
 
-
-
 @RestController
 @CrossOrigin("*")
 @RequestMapping("/home")
@@ -58,14 +69,23 @@ public class HomeController {
 	
 	@Autowired
 	private ModelMapper mapper;
+
+	@Autowired
+	private BuildsRepository buildsRepo;
+	
+	@Autowired
+	private UsersRepository usersRepo;
+	
+	@Autowired
+	private BuildServiceImpl buildService;
 	
 	private static final String UPLOAD_DIR = "C:"+File.separator+"ProgramData"+File.separator+"zipfiles";
-	@PostMapping("/buildandpush")
+	@PostMapping("/buildandpush/{user_id}")
 	public ResponseEntity<?> getSecurity(
 			@RequestPart("inputData") String inputData,
-			@RequestPart("file") MultipartFile file) {
-		
-		
+			@RequestPart("file") MultipartFile file,
+			@PathVariable("user_id") Long user_id
+			) {
 		
 		inputDataDto inputDataDetails = null;
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -80,21 +100,12 @@ public class HomeController {
 		}
 		
 		
-		
-//		inputDataDto inputData = new inputDataDto();
-		
-//		System.out.println(inputDataString);
-		
-//		Gson gson = new Gson();    
-//		inputDataDto jsonObject = null;
-//		mapper.map(jsonObject, inputData);
-		
 		System.out.println(inputDataDetails);
 		
 		String jenkinsUrl = "http://localhost:8080"; 
         String jobName = "dockerbuild"; 
-        String jenkinsuser= "admin";
-        String jenkinsapitoken = "115e0432d1d42d261d33f6efcf1e8d51c6";
+        String jenkinsuser= "krishpe";
+        String jenkinsapitoken = "11d6f472a896cc461e872ee9c75158ec4f";
 
         String apiUrl = jenkinsUrl + "/job/" + jobName + "/buildWithParameters";
 
@@ -107,12 +118,7 @@ public class HomeController {
         HttpHeaders headers = new HttpHeaders();
 
         headers.setBasicAuth(jenkinsuser, jenkinsapitoken);
-        
-        
-        
-        
-        
-        
+       
         
         if (file.isEmpty()) {
             return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
@@ -180,6 +186,8 @@ public class HomeController {
 
             String[] parts = location.split("/");
             String itemNumber = parts[parts.length - 1];
+            for(String part : parts)
+            System.out.println(part);
             
             String queueItemUrl = "http://localhost:8080/queue/item/" + itemNumber + "/api/json";
 //            ResponseEntity<String> queueItemResponse = restTemplate.getForEntity(queueItemUrl, String.class);
@@ -230,6 +238,20 @@ public class HomeController {
          
             buildResponse buildResp = new buildResponse();
             buildResp.setBuildId(buildId);
+            Users user= new Users();
+            
+            user.setUserId(user_id);
+            
+            Builds builds=new Builds();
+            builds.setBuildId(buildId);
+            builds.setFinalBuildStatus(buildStatusEnum.INPROGRESS);
+            builds.setTimestamp(LocalDateTime.now());
+            builds.setUser(user);
+            builds.setDocekerUser(inputDataDetails.getDockeruser());
+            
+            buildsRepo.save(builds);
+            
+            
     		return new ResponseEntity<>(buildResp, response.getStatusCode());
             }
             catch(RestClientException e) {
@@ -291,14 +313,17 @@ public class HomeController {
 	public ResponseEntity<?> getStatus(@PathVariable("buildId") Integer buildId) {
 		
 		String url = "http://localhost:8080/job/dockerbuild/" + buildId +"/api/json";
-		
+		String logURL="http://localhost:8080/job/dockerbuild/"+ buildId +"/logText/progressiveText";
 		
 		SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setOutputStreaming(false);
         RestTemplate restTemplate = new RestTemplate(requestFactory);
 		
 	    ResponseEntity<String> statusResponse = restTemplate.getForEntity(url, String.class);
-		System.out.println(statusResponse);
+//	    System.out.println("Status Response:"+restTemplate.getForEntity(logURL,JsonObject.class));
+	    ResponseEntity<String> logResponse = restTemplate.getForEntity(logURL, String.class);
+		System.out.println("Jenkins Status Response"+statusResponse.getBody());
+		System.out.println("Jenkins Build Logs"+ logResponse.getBody());
 		statusDto statusObject = null;
 		ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -312,19 +337,48 @@ public class HomeController {
 			// TODO Auto-generated catch block
 			System.out.println("JsonProcessingException");
 		}
-        String result = statusObject.getResult();
-		if ("SUCCESS".equals(result)) {
-		    return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
-		} else if ("FAILURE".equals(result)) {
-		    return new ResponseEntity<>("FAILURE", HttpStatus.OK);
-		} else if ("UNSTABLE".equals(result)) {
-		    return new ResponseEntity<>("UNSTABLE", HttpStatus.OK);
-		} else if (result == null) {
-		    return new ResponseEntity<>("INPROGRESS", HttpStatus.OK);
-		} else {
-		    return new ResponseEntity<>("Unknown result: " + result, HttpStatus.OK);
-		}
+        String resultStatus = statusObject.getResult();
+        String logs=logResponse.getBody();
+        
+        Map<String, Object> jsonResponse = new HashMap<>();
+        jsonResponse.put("status", resultStatus);
+        jsonResponse.put("logs", logs);
+
+        ObjectMapper objectMap = new ObjectMapper();
+        String jsonResponseString = null;
+        try {
+            jsonResponseString = objectMap.writeValueAsString(jsonResponse);
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+        // Create and return a ResponseEntity with JSON body
+        return ResponseEntity.ok(jsonResponseString);
+        
+        
+//		if ("SUCCESS".equals(result)) {
+//		    return new ResponseEntity<>("SUCCESS"+logResponse.getBody(), HttpStatus.OK);
+//		} else if ("FAILURE".equals(result)) {
+//		    return new ResponseEntity<>("FAILURE"+logResponse.getBody(), HttpStatus.OK);
+//		} else if ("UNSTABLE".equals(result)) {
+//		    return new ResponseEntity<>("UNSTABLE"+logResponse.getBody(), HttpStatus.OK);
+//		} else if (result == null) {
+//		    return new ResponseEntity<>("INPROGRESS"+logResponse.getBody(), HttpStatus.OK);
+//		} else {
+//		    return new ResponseEntity<>("Unknown result: "+logResponse.getBody() + result, HttpStatus.OK);
+//		}
 		
 	}
-
+	
+	@GetMapping("/getBuilds/{userId}")
+	public ResponseEntity<List<Builds>> getUserBuildList(@PathVariable("userId") Long userId) {
+		try {
+		List<Builds> buildList=  buildService.getBuildList(userId);
+		return  new ResponseEntity<>(buildList, HttpStatus.OK);
+	}catch (Exception e) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(null);
+	}
+}
 }

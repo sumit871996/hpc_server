@@ -44,6 +44,7 @@ public class WebSecurityConfig {
 		authorizeRequests()
 		.requestMatchers("/users/**").hasRole("USER")
 		.requestMatchers("/", "/auth/**", "/home/**", "/employee/**").permitAll().
+//		.requestMatchers("/").permitAll().
 		anyRequest().authenticated().
 		and().
 		sessionManagement()
