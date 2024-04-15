@@ -50,10 +50,12 @@ public class WebSecurityConfig {
 		}).
 		and().
 		authorizeRequests()
+
 //		.requestMatchers("/users/**").hasRole("USER")
 		.requestMatchers("/home/**").hasAuthority("USER")
 		.requestMatchers("/", path, "/auth/**").permitAll().
 //		.requestMatchers("/", "/auth/**", "/home/**","/employee/**").permitAll().
+
 		anyRequest().authenticated().
 		and().
 		sessionManagement()
