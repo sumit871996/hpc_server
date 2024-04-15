@@ -40,17 +40,22 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 				// valid token --> extract user name from the token
 				String userName = utils.getUserNameFromJwtToken(token);
 				
+				
 				if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 					// load user details from UserDetailsService
+				
 					UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+					System.out.println(userDetails.toString());
 					// create Authentication object , wrapping user details lifted from DB
 					UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 							userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
-					System.out.println(userDetails.getAuthorities());
+//					System.out.println(userDetails.getAuthorities());
 					//set details in auth object
 		//			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 //					Save this authentication token in the sec ctx.
+					
 					SecurityContextHolder.getContext().setAuthentication(authentication);
+					System.out.println(authentication.toString());
 				}
 				else
 					log.info("user name null or authentication already set , username {}",userName);

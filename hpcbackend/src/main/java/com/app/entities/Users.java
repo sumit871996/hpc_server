@@ -22,9 +22,9 @@ public class Users {
 	@Column(name = "user_id")
 	public long userId;
 	
-	public String getUserRole()
+	public Role getUserRole()
 	{
-	return "USER";
+	return Role.USER;
 	}
 	
 	@Column(name = "username", length = 10, nullable = false)

@@ -27,7 +27,7 @@ public class CustomUserDetails implements UserDetails {
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		//Map   role   -----> Collection : GrantedAuthority <----SimpleGrantedAuthority(String authority)		
-		return Arrays.asList(new SimpleGrantedAuthority(user.getUserRole()));
+		return Arrays.asList(new SimpleGrantedAuthority(user.getUserRole().name()));
 	}
 
 

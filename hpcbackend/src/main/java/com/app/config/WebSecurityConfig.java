@@ -3,6 +3,7 @@ package com.app.config;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -26,7 +27,8 @@ public class WebSecurityConfig {
 
 	@Autowired
 	private JWTRequestFilter filter;
-
+	@Value("${security.enable}")
+	private boolean sec;
 	// configure BCryptPassword encoder bean
 	@Bean
 	public PasswordEncoder encoder() {
@@ -35,6 +37,12 @@ public class WebSecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		
+		String path = "/";
+		if(!sec)
+		{
+			path = "/home/**";
+		}
 		http.cors().and().csrf().disable().
 		exceptionHandling().
 		authenticationEntryPoint((request, response, ex) -> {
@@ -42,9 +50,12 @@ public class WebSecurityConfig {
 		}).
 		and().
 		authorizeRequests()
-		.requestMatchers("/users/**").hasRole("USER")
-		.requestMatchers("/", "/auth/**", "/home/**", "/employee/**").permitAll().
-//		.requestMatchers("/").permitAll().
+
+//		.requestMatchers("/users/**").hasRole("USER")
+		.requestMatchers("/home/**").hasAuthority("USER")
+		.requestMatchers("/", path, "/auth/**").permitAll().
+//		.requestMatchers("/", "/auth/**", "/home/**","/employee/**").permitAll().
+
 		anyRequest().authenticated().
 		and().
 		sessionManagement()

@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,7 +81,14 @@ public class HomeController {
 	private BuildServiceImpl buildService;
 	
 	private static final String UPLOAD_DIR = "C:"+File.separator+"ProgramData"+File.separator+"zipfiles";
+
+	@GetMapping("/test")
+	public String test() {
+		return "Test";
+	}
+	
 	@PostMapping("/buildandpush/{user_id}")
+
 	public ResponseEntity<?> getSecurity(
 			@RequestPart("inputData") String inputData,
 			@RequestPart("file") MultipartFile file,
