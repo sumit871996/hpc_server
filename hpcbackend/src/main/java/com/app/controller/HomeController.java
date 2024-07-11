@@ -123,23 +123,14 @@ public class HomeController {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setOutputStreaming(false);
         RestTemplate restTemplate = new RestTemplate(requestFactory);
-//        RestTemplate restTemplate = new RestTemplate();
-
-        // Prepare the request parameters
         HttpHeaders headers = new HttpHeaders();
-
         headers.setBasicAuth(jenkinsuser, jenkinsapitoken);
-       
-        
         if (file.isEmpty()) {
             return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
         }
 		
 		try {
-            // Get the file bytes
             byte[] bytes = file.getBytes();
-
-            // Create the directory if it doesn't exist
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
@@ -147,7 +138,6 @@ public class HomeController {
             
             System.out.println(UPLOAD_DIR);
 
-            // Save the file
             Path path = Paths.get(UPLOAD_DIR + File.separator + file.getOriginalFilename());
             System.out.println(java.nio.file.Files.write(path, bytes));
             
@@ -228,19 +218,15 @@ public class HomeController {
                 	System.out.println(queueItemBody);
                     break;  // Exit the loop if the build has started running
                 }
-
                 // Wait before the next retry
                 try {
                     Thread.sleep(retryInterval);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
                 retries++;
             }
-            
             int buildId = 0;
-
             if (retries == maxRetries) {
                 // Handle the case where the build didn't start within the specified retries
                 System.out.println("Build did not start within the specified retries.");
@@ -262,26 +248,18 @@ public class HomeController {
             builds.setTimestamp(LocalDateTime.now());
             builds.setUser(user);
             builds.setDocekerUser(inputDataDetails.getDockeruser());
-            
             buildsRepo.save(builds);
-            
-            
     		return new ResponseEntity<>(buildResp, response.getStatusCode());
             }
             catch(RestClientException e) {
             	e.printStackTrace();
                 return new ResponseEntity<>("Failed to run pipeline", HttpStatus.INTERNAL_SERVER_ERROR);
-            	
             }
             
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>("Failed to upload the file", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        // Set the request body with environment variables
-        
-
 	}
 	
 	private int parseBuildIdFromJson(String jsonResponse) {
@@ -291,7 +269,7 @@ public class HomeController {
 		ObjectMapper objectMapper = new ObjectMapper();
         try {
         	jsonObject = objectMapper.readValue(jsonResponse, responseDto.class);
-        	System.out.println(jsonObject.toString());
+//        	System.out.println(jsonObject.toString());
         	
 		} catch (JsonMappingException e1) {
 			// TODO Auto-generated catch block
@@ -324,7 +302,7 @@ public class HomeController {
     }
 	
 	@GetMapping("/getStatus/{buildId}")
-	public ResponseEntity<?> getStatus(@PathVariable("buildId") Integer buildId) {
+	public ResponseEntity<?> getStatus(@PathVariable("buildId") Long buildId) {
 		
 		String url = "http://localhost:8080/job/dockerbuild/" + buildId +"/api/json";
 		String logURL="http://localhost:8080/job/dockerbuild/"+ buildId +"/logText/progressiveText";
@@ -334,16 +312,14 @@ public class HomeController {
         RestTemplate restTemplate = new RestTemplate(requestFactory);
 		
 	    ResponseEntity<String> statusResponse = restTemplate.getForEntity(url, String.class);
-//	    System.out.println("Status Response:"+restTemplate.getForEntity(logURL,JsonObject.class));
+
 	    ResponseEntity<String> logResponse = restTemplate.getForEntity(logURL, String.class);
-		System.out.println("Jenkins Status Response"+statusResponse.getBody());
-		System.out.println("Jenkins Build Logs"+ logResponse.getBody());
+
 		statusDto statusObject = null;
 		ObjectMapper objectMapper = new ObjectMapper();
         try {
         	statusObject = objectMapper.readValue(statusResponse.getBody(), statusDto.class);
-        	System.out.println(statusObject.toString());
-        	
+//        	System.out.println(statusObject.toString());
 		} catch (JsonMappingException e1) {
 			// TODO Auto-generated catch block
 			System.out.println("deserialize error");
@@ -355,6 +331,9 @@ public class HomeController {
         String logs=logResponse.getBody();
         
         Map<String, Object> jsonResponse = new HashMap<>();
+        System.out.println("Status:"+resultStatus);
+        Builds newb=buildService.updateStatus(buildId,resultStatus);
+        System.out.println(newb);
         jsonResponse.put("status", resultStatus);
         jsonResponse.put("logs", logs);
 
@@ -366,22 +345,7 @@ public class HomeController {
 
             e.printStackTrace();
         }
-
-        // Create and return a ResponseEntity with JSON body
         return ResponseEntity.ok(jsonResponseString);
-        
-        
-//		if ("SUCCESS".equals(result)) {
-//		    return new ResponseEntity<>("SUCCESS"+logResponse.getBody(), HttpStatus.OK);
-//		} else if ("FAILURE".equals(result)) {
-//		    return new ResponseEntity<>("FAILURE"+logResponse.getBody(), HttpStatus.OK);
-//		} else if ("UNSTABLE".equals(result)) {
-//		    return new ResponseEntity<>("UNSTABLE"+logResponse.getBody(), HttpStatus.OK);
-//		} else if (result == null) {
-//		    return new ResponseEntity<>("INPROGRESS"+logResponse.getBody(), HttpStatus.OK);
-//		} else {
-//		    return new ResponseEntity<>("Unknown result: "+logResponse.getBody() + result, HttpStatus.OK);
-//		}
 		
 	}
 	
