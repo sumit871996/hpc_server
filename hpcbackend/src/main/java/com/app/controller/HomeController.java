@@ -87,6 +87,9 @@ public class HomeController {
 		return "Test";
 	}
 	
+	
+	
+	
 	@PostMapping("/buildandpush/{user_id}")
 
 	public ResponseEntity<?> getSecurity(
@@ -112,8 +115,8 @@ public class HomeController {
 		
 		String jenkinsUrl = "http://localhost:8080"; 
         String jobName = "dockerbuild"; 
-        String jenkinsuser= "krishpe";
-        String jenkinsapitoken = "11d6f472a896cc461e872ee9c75158ec4f";
+        String jenkinsuser= "admin";
+        String jenkinsapitoken = "11b4a3a442653e7ea62d7c715eb3b94ee4";
 
         String apiUrl = jenkinsUrl + "/job/" + jobName + "/buildWithParameters";
 
@@ -166,7 +169,10 @@ public class HomeController {
             createAndSaveDockerfile(UPLOAD_DIR, fileNamebase, dockerfileContentStringbase);
             
       
-
+//            System.out.println(inputDataDetails.getImagetag());
+//            System.out.println(inputDataDetails.getBaseimagetag());
+            System.out.println(inputDataDetails.getBuildcommand());
+            System.out.println(inputDataDetails.getBasebuildcommand());
             MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
             map.add("dockeruser", inputDataDetails.getDockeruser());
             map.add("dockerpassword", inputDataDetails.getDockerpassword());

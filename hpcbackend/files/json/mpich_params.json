@@ -1,0 +1,108 @@
+{
+    "use_case_id": "123",
+    "stages": [
+      {
+        "name": "Stage 1",
+        "rjsf_schema": {
+          "form_schema": {
+            "description": "Stage 1 contains preparing a base image for your MPI Application",
+            "type": "object",
+            "required": [
+              "mpich_version",
+              "mpi_configure_options",
+              "mpi_make_options",
+              "user",
+              "work_dir",
+              "base_image_name",
+              "base_image_tag"
+            ],
+            "properties": {
+              "mpich_version": {
+                "type": "string",
+                "title": "MPICH Version",
+                "default": "4.1.2",
+                "enum": ["4.1.2"]
+              },
+              "mpi_configure_options": {
+                "type": "string",
+                "title": "mpi_configure_options",
+                "default": "--disable-fortran"
+              },
+              "mpi_make_options": {
+                "type": "string",
+                "title": "mpi_make_options",
+                "default": "--j4"
+              },
+              "user": {
+                "type": "string",
+                "title": "User",
+                "default": "user"
+              },
+              "work_dir": {
+                "type": "string",
+                "title": "Working directory",
+                "default": "/project"
+              },
+              "base_image_name": {
+                "type": "string",
+                "title": "MPI Base Image Name",
+                "default": "mpich"
+              },
+              "base_image_tag": {
+                "type": "string",
+                "title": "MPI Base Image Tag",
+                "default": "1"
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Stage 2",
+        "rjsf_schema": {
+          "form_schema": {
+            "description": "This stage contains preparing application image for your MPI Application",
+            "type": "object",
+            "required": [
+              "app_image_name",
+              "app_image_tag",
+              "dockeruser",
+              "dockerpassword"
+            ],
+            "properties": {
+              "app_image_name": {
+                "type": "string",
+                "title": "Application Image Name",
+                "default": "ain"
+              },
+              "app_image_tag": {
+                "type": "string",
+                "title": "Application Image Tag",
+                "default": "ait"
+              },
+              "app_docker_commands": {
+                "type": "array",
+                "title": "Docker Application Commands",
+                "default": ""
+              },
+              "dockeruser": {
+                "type": "string",
+                "title": "Docker Username",
+                "default": ""
+              },
+              "dockerpassword": {
+                "type": "string",
+                "title": "Docker Password",
+                "default": ""
+              },
+              "app_sin_image_name": {
+                "type": "string",
+                "title": "Application Singularity Image Name",
+                "default": "asin"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }

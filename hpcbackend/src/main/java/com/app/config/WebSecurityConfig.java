@@ -52,9 +52,9 @@ public class WebSecurityConfig {
 		authorizeRequests()
 
 //		.requestMatchers("/users/**").hasRole("USER")
-		.requestMatchers("/home/**").hasAuthority("USER")
-		.requestMatchers("/", path, "/auth/**").permitAll().
-//		.requestMatchers("/", "/auth/**", "/home/**","/employee/**").permitAll().
+//		.requestMatchers("/home/**").hasAuthority("USER")
+//		.requestMatchers("/", path, "/auth/**").permitAll().
+		.requestMatchers("/", "/auth/**", "/home/**","/form/**","/employee/**","/form/usecases/**").permitAll().
 
 		anyRequest().authenticated().
 		and().
