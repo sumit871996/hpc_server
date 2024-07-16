@@ -1,5 +1,5 @@
 {
-    "use_case_id": "5",
+    "use_case_id": "4",
     "stages": [
       {
         "name": "Stage 1",
@@ -9,40 +9,37 @@
             "description": "Stage 1 contains preparing a base image for your MPI Application",
             "type": "object",
             "required": [
-              "mpich_version",
-              "mpi_configure_options",
-              "mpi_make_options",
-              "user",
-              "work_dir",
+              "mpi_developement_version",
+              "intel_mkl_version",
+              "intel_icc_version",
+              "intel_tbb_version",
               "base_image_name",
               "base_image_tag"
             ],
             "properties": {
-              "mpich_version": {
+              "mpi_developement_version": {
                 "type": "string",
-                "title": "MPICH Version",
-                "default": "4.1.2",
-                "enum": ["4.1.2"]
+                "title": "MPI Developement Version",
+                "default": "2021.1.1",
+                "enum": ["2021.1.1"]
               },
-              "mpi_configure_options": {
+              "intel_mkl_version": {
                 "type": "string",
-                "title": "mpi_configure_options",
-                "default": "--disable-fortran"
+                "title": "Intel MKL Version",
+                "default": "2021.1.1",
+                "enum": ["2021.1.1"]
               },
-              "mpi_make_options": {
+              "intel_icc_version": {
                 "type": "string",
-                "title": "mpi_make_options",
-                "default": "-j4"
+                "title": "Intel ICC Version",
+                "default": "2021.1.1",
+                "enum": ["2021.1.1"]
               },
-              "user": {
+              "intel_tbb_version": {
                 "type": "string",
-                "title": "User",
-                "default": "user"
-              },
-              "work_dir": {
-                "type": "string",
-                "title": "Working directory",
-                "default": "/project"
+                "title": "Intel TBB Version",
+                "default": "2021.1.1",
+                "enum": ["2021.1.1"]
               },
               "base_image_name": {
                 "type": "string",
@@ -71,7 +68,8 @@
               "app_image_name",
               "app_image_tag",
               "dockeruser",
-              "dockerpassword"
+              "dockerpassword",
+              "sourcecode_source"
             ],
             "oneOf": [
               {

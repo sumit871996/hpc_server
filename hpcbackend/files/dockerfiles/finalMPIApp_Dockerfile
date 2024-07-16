@@ -1,0 +1,22 @@
+ARG MPI_IMAGENAME
+ARG MPI_IMAGETAG
+FROM ${MPI_IMAGENAME}:${MPI_IMAGETAG}
+
+RUN sudo apt-get update && sudo apt-get install unzip
+
+#### ADD DEFAULT USER ####
+ARG USER
+ENV USER ${USER}
+RUN useradd -m ${USER} && chown -R ${USER}:${USER} /home/${USER} || true
+
+#### CREATE WORKING DIRECTORY FOR USER ####
+ARG WORKDIR
+ENV WORKDIR ${WORKDIR}
+RUN mkdir -p ${WORKDIR} && chown -R ${USER}:${USER} ${WORKDIR}
+ENV OPAL_PREFIX=/usr/local
+WORKDIR ${WORKDIR}
+USER ${USER}
+COPY ./application.zip .
+ARG c_file
+RUN unzip -u application.zip && c_file=$(find . -type f -name *.c -print -quit) && mpicc ${c_file} -o application.exe
+CMD ["sh", "-c", "./application.exe 1>&2 & tail -f /dev/null"]

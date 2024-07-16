@@ -1,58 +1,22 @@
 {
-    "use_case_id": "5",
+    "use_case_id": "1",
     "stages": [
       {
         "name": "Stage 1",
         "rjsf_schema": {
           "form_schema": {
-            "title": "Base MPI Setup",
-            "description": "Stage 1 contains preparing a base image for your MPI Application",
+            "title": "React Application Setup",
+            "description": "This stage contains creating docker image for react application",
             "type": "object",
             "required": [
-              "mpich_version",
-              "mpi_configure_options",
-              "mpi_make_options",
-              "user",
-              "work_dir",
-              "base_image_name",
-              "base_image_tag"
+              "node_version"
             ],
             "properties": {
-              "mpich_version": {
+              "node_version": {
                 "type": "string",
-                "title": "MPICH Version",
-                "default": "4.1.2",
-                "enum": ["4.1.2"]
-              },
-              "mpi_configure_options": {
-                "type": "string",
-                "title": "mpi_configure_options",
-                "default": "--disable-fortran"
-              },
-              "mpi_make_options": {
-                "type": "string",
-                "title": "mpi_make_options",
-                "default": "-j4"
-              },
-              "user": {
-                "type": "string",
-                "title": "User",
-                "default": "user"
-              },
-              "work_dir": {
-                "type": "string",
-                "title": "Working directory",
-                "default": "/project"
-              },
-              "base_image_name": {
-                "type": "string",
-                "title": "MPI Base Image Name",
-                "default": "mpich"
-              },
-              "base_image_tag": {
-                "type": "string",
-                "title": "MPI Base Image Tag",
-                "default": "1"
+                "title": "Node Version",
+                "default": "22-alpine3.19",
+                "enum": ["22-alpine3.19","22-alpine","22","22-bookworm-slim","22-bullseye","22-bullseye-slim","20-alpine3.19","20-alpine","20", "20-bookworm-slim","20-bullseye","20-bullseye-slim","18-alpine3.19", "18-alpine", "18", "18-bookworm-slim", "18-bullseye","18-bullseye-slim"]
               }
             }
           }
@@ -65,13 +29,14 @@
         "name": "Stage 2",
         "rjsf_schema": {
           "form_schema": {
-            "description": "This stage contains preparing application image for your MPI Application",
+            "description": "This stage contains preparing application image for your ReactJS Application",
             "type": "object",
             "required": [
               "app_image_name",
               "app_image_tag",
               "dockeruser",
-              "dockerpassword"
+              "dockerpassword",
+              "sourcecode_source"
             ],
             "oneOf": [
               {

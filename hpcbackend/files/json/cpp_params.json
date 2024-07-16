@@ -1,58 +1,22 @@
 {
-    "use_case_id": "5",
+    "use_case_id": "3",
     "stages": [
       {
         "name": "Stage 1",
         "rjsf_schema": {
           "form_schema": {
-            "title": "Base MPI Setup",
-            "description": "Stage 1 contains preparing a base image for your MPI Application",
+            "title": "C++ Application Setup",
+            "description": "This stage contains creating docker image for C++ application",
             "type": "object",
             "required": [
-              "mpich_version",
-              "mpi_configure_options",
-              "mpi_make_options",
-              "user",
-              "work_dir",
-              "base_image_name",
-              "base_image_tag"
+              "gcc_version"
             ],
             "properties": {
-              "mpich_version": {
+              "gcc_version": {
                 "type": "string",
-                "title": "MPICH Version",
-                "default": "4.1.2",
-                "enum": ["4.1.2"]
-              },
-              "mpi_configure_options": {
-                "type": "string",
-                "title": "mpi_configure_options",
-                "default": "--disable-fortran"
-              },
-              "mpi_make_options": {
-                "type": "string",
-                "title": "mpi_make_options",
-                "default": "-j4"
-              },
-              "user": {
-                "type": "string",
-                "title": "User",
-                "default": "user"
-              },
-              "work_dir": {
-                "type": "string",
-                "title": "Working directory",
-                "default": "/project"
-              },
-              "base_image_name": {
-                "type": "string",
-                "title": "MPI Base Image Name",
-                "default": "mpich"
-              },
-              "base_image_tag": {
-                "type": "string",
-                "title": "MPI Base Image Tag",
-                "default": "1"
+                "title": "GCC Version",
+                "default": "14.1.0",
+                "enum": ["14.1.0","13.3.0","12.4.0","11.4.0"]
               }
             }
           }
@@ -65,13 +29,14 @@
         "name": "Stage 2",
         "rjsf_schema": {
           "form_schema": {
-            "description": "This stage contains preparing application image for your MPI Application",
+            "description": "This stage contains preparing application image for your C++ Application",
             "type": "object",
             "required": [
               "app_image_name",
               "app_image_tag",
               "dockeruser",
-              "dockerpassword"
+              "dockerpassword",
+              "sourcecode_source"
             ],
             "oneOf": [
               {

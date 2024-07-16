@@ -1,5 +1,5 @@
 {
-    "use_case_id": "5",
+    "use_case_id": "6",
     "stages": [
       {
         "name": "Stage 1",
@@ -9,7 +9,7 @@
             "description": "Stage 1 contains preparing a base image for your MPI Application",
             "type": "object",
             "required": [
-              "mpich_version",
+              "openmpi_major_version",
               "mpi_configure_options",
               "mpi_make_options",
               "user",
@@ -18,11 +18,11 @@
               "base_image_tag"
             ],
             "properties": {
-              "mpich_version": {
+              "openmpi_major_version": {
                 "type": "string",
-                "title": "MPICH Version",
-                "default": "4.1.2",
-                "enum": ["4.1.2"]
+                "title": "OpenMPI Major Version",
+                "default": "v4.0",
+                "enum": ["v4.0","v4.1","v5.0"]
               },
               "mpi_configure_options": {
                 "type": "string",
@@ -99,7 +99,7 @@
               }
             ],
             "properties": {
-              "application_docker_commands": {
+                "application_docker_commands": {
                 "type": "string",
                 "title": "Docker commands to run application",
                 "default": ""

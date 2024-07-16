@@ -1,0 +1,29 @@
+# This dockerfile runs a C application
+# Step 1: Build the C application
+ARG GCC_VERSION
+ARG FILENAME
+FROM gcc:${GCC_VERSION} AS build
+
+# Set working directory
+WORKDIR /app
+
+# Copy source code to the container
+COPY ${FILENAME} ./main.c
+
+# Compile the C program
+RUN gcc -o main main.c
+
+# Step 2: Run the C application
+FROM debian:stable-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy the compiled binary from the build stage
+COPY --from=build /app/main .
+
+# Make the binary executable
+RUN chmod +x main
+
+# Command to run the application
+CMD ["./main"]
