@@ -9,6 +9,7 @@
             "description": "Stage 1 contains preparing a base image for your MPI Application",
             "type": "object",
             "required": [
+              "openmpi_version",
               "openmpi_major_version",
               "mpi_configure_options",
               "mpi_make_options",
@@ -18,6 +19,12 @@
               "base_image_tag"
             ],
             "properties": {
+              "openmpi_version":{
+                  "type": "string",
+                "title": "OpenMPI Version",
+                "default": "v4.0",
+                "enum": ["4.0","4.1","5.0"]
+              },
               "openmpi_major_version": {
                 "type": "string",
                 "title": "OpenMPI Major Version",

@@ -27,13 +27,19 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.app.dto.inputDataDto;
 import com.app.dto.responseDto;
+import com.app.dto.new_dto.cInputDto;
+import com.app.dto.new_dto.cppInputDto;
+import com.app.dto.new_dto.intelmpiInputDto;
 import com.app.dto.new_dto.mpichInputDto;
+import com.app.dto.new_dto.openmpiInputDto;
 import com.app.dto.new_dto.reactInputDto;
 import com.app.entities.UseCases.UseCasesEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
 @RestController
 @CrossOrigin("*")
@@ -99,57 +105,101 @@ public ResponseEntity<?> getUsecaseDockerfile(
 		@RequestPart("inputData") String inputData,
 		@RequestPart("file") MultipartFile file)
 {
+	String dockerfileName = getFileName(useCaseId, "dockerfile");
+	if(dockerfileName == null)
+	return new ResponseEntity<>("Invalid ID", HttpStatus.NOT_ACCEPTABLE);
+	ArrayList<String> dockerfile = null;
+	
 	ObjectMapper objectMapper = new ObjectMapper();
-
+	try {
+		
 	// process react input DTO
 	if(useCaseId == 1)
 	{
-	reactInputDto inputDataDetails = null;
-    try {
-		inputDataDetails = objectMapper.readValue(inputData, reactInputDto.class);
+		reactInputDto inputDataDetails = objectMapper.readValue(inputData, reactInputDto.class);
 		if(file == null && inputDataDetails.getGitUrl()==null)
-		return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
-		return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
-		System.out.println(inputDataDetails);
-	} catch (JsonMappingException e1) {
-		// TODO Auto-generated catch block
-		e1.printStackTrace();
-	} catch (JsonProcessingException e1) {
-		// TODO Auto-generated catch block
-		e1.printStackTrace();
+			return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
+		dockerfile = readDockerfile(dockerfileName,useCaseId,inputDataDetails);
 	}
+	
+	//process C input DTO
+	if(useCaseId == 2)
+	{ 
+		cInputDto inputDataDetails = objectMapper.readValue(inputData, cInputDto.class);
+		if(file == null && inputDataDetails.getGitUrl()==null)
+			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
+		if(file != null && inputDataDetails.getGitUrl()!=null)
+			return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
+		dockerfile = readDockerfile(dockerfileName,useCaseId,inputDataDetails);
+	} 
+    
+	//process CPP input DTO
+	if(useCaseId == 3)
+	{
+		cppInputDto inputDataDetails = objectMapper.readValue(inputData, cppInputDto.class);
+		if(file == null && inputDataDetails.getGitUrl()==null)
+			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
+		if(file != null && inputDataDetails.getGitUrl()!=null)
+			return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
+		dockerfile = readDockerfile(dockerfileName,useCaseId,inputDataDetails);
 	}
+	
+	// process intel MPI input DTO
+	if(useCaseId == 4)
+	{
+		intelmpiInputDto inputDataDetails = objectMapper.readValue(inputData, intelmpiInputDto.class);
+		if(file == null && inputDataDetails.getGitUrl()==null)
+			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
+		if(file != null && inputDataDetails.getGitUrl()!=null)
+			return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
+		dockerfile = readDockerfile(dockerfileName,useCaseId,inputDataDetails);
+	} 
 	
 	// process MPICH input DTO
 	if(useCaseId == 5)
 	{
-	mpichInputDto inputDataDetails = null;
-    try {
-		inputDataDetails = objectMapper.readValue(inputData, mpichInputDto.class);
+		mpichInputDto inputDataDetails = objectMapper.readValue(inputData, mpichInputDto.class);
 		if(file == null && inputDataDetails.getGitUrl()==null)
-		return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
-		return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
+		dockerfile = readDockerfile(dockerfileName,useCaseId,inputDataDetails);
+	}
+	
+	// process Openmpi input DTO
+	if(useCaseId == 6)
+	{
+		openmpiInputDto inputDataDetails = objectMapper.readValue(inputData, openmpiInputDto.class);
 		System.out.println(inputDataDetails);
-	} catch (JsonMappingException e1) {
-		// TODO Auto-generated catch block
-		e1.printStackTrace();
-	} catch (JsonProcessingException e1) {
-		// TODO Auto-generated catch block
-		e1.printStackTrace();
+		if(file == null && inputDataDetails.getGitUrl()==null)
+			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
+		if(file != null && inputDataDetails.getGitUrl()!=null)
+			return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
+		dockerfile = readDockerfile(dockerfileName,useCaseId,inputDataDetails);
 	}
+			
 	}
+	catch(NullPointerException n)
+	{
+		n.printStackTrace();
+		return new ResponseEntity<>("Missing fields",HttpStatus.BAD_REQUEST);
+	}
+	catch (MismatchedInputException e2)
+	{
+		e2.printStackTrace();
+		return new ResponseEntity<>("Please provide input in proper formatting",HttpStatus.BAD_REQUEST);
+	}
+	catch (JsonMappingException e1) {
+		e1.printStackTrace();
+		return new ResponseEntity<>("Please provide input in proper formatting",HttpStatus.BAD_REQUEST);
+	}
+	catch (JsonProcessingException e1) {
+		e1.printStackTrace();
+		return new ResponseEntity<>("Please provide input in proper formatting",HttpStatus.BAD_REQUEST);
+	} 
 	
-	
-	
-	
-	
-	
-	String dockerfileName = getFileName(useCaseId, "dockerfile");
-	if(dockerfileName == null)
-	return new ResponseEntity<>("Invalid ID", HttpStatus.NOT_ACCEPTABLE);
-	ArrayList<String> dockerfile = readDockerfile(dockerfileName);
 	if(dockerfile == null || dockerfile.size()==0)
 		return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 	return new ResponseEntity<>(dockerfile,HttpStatus.OK);
@@ -234,7 +284,8 @@ private static void createAndSaveDockerfile(String directoryPath, String fileNam
     }
 }
 
-public ArrayList<String> readDockerfile(String dockerfileName) {
+
+public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId, Object inputDataDetails) {
     ArrayList<String> lines = new ArrayList<>();
 	try {
 		Path filepath = Paths.get(file,"dockerfiles",dockerfileName);
@@ -243,90 +294,122 @@ public ArrayList<String> readDockerfile(String dockerfileName) {
 		if (resource.exists() || resource.isReadable()) {
 			  lines.addAll(Files.readAllLines(filepath));
 		}
-
+		
+		// replacing vars for react
+		if(useCaseId == 1)
+		{
+			reactInputDto inputData = (reactInputDto)inputDataDetails;
 			for( int i=0; i< lines.size(); i++)
-				{
-				
-				//replacing c vars
-				if(dockerfileName.contains("c_"))
-				{
-				if(lines.get(i).contains("${GCC_VERSION}"))
-					lines.set(i, lines.get(i).replace("${GCC_VERSION}", "4.1"));
-				if(lines.get(i).contains("${FILENAME}"))
-					lines.set(i, lines.get(i).replace("${FILENAME}", "4.1"));
-				}
-				//replacing cpp vars
-				else if(dockerfileName.contains("cpp_"))
-				{
-				if(lines.get(i).contains("${GCC_VERSION}"))
-					lines.set(i, lines.get(i).replace("${GCC_VERSION}", "4.1"));
-				if(lines.get(i).contains("${FILENAME}"))
-					lines.set(i, lines.get(i).replace("${FILENAME}", "4.1"));
-				}
-				
-				//replacing mpich params
-				else if(dockerfileName.contains("mpich_"))
-				{
-				if(lines.get(i).contains("${MPI_VERSION}"))
-					lines.set(i, lines.get(i).replace("${MPI_VERSION}", "4.1"));
-				if(lines.get(i).contains("${MPI_CONFIGURE_OPTIONS}"))
-					lines.set(i, lines.get(i).replace("${MPI_CONFIGURE_OPTIONS}", "--disable-fortran"));
-				if(lines.get(i).contains("${MPI_MAKE_OPTIONS}"))
-					lines.set(i, lines.get(i).replace("${MPI_MAKE_OPTIONS}", "-j4"));
-				if(lines.get(i).contains("${WORKDIR}"))
-					lines.set(i, lines.get(i).replace("${WORKDIR}", "/project"));
-				if(lines.get(i).contains("${USER}"))
-					lines.set(i, lines.get(i).replace("${USER}", "user"));
-				}
-				//replacing intelmpi params
-				else if(dockerfileName.contains("intelmpi_"))
-				{
-				if(lines.get(i).contains("${MPI_VERSION}"))
-					lines.set(i, lines.get(i).replace("${MPI_VERSION}", "4.1"));
-				if(lines.get(i).contains("${ICC_VERSION}"))
-					lines.set(i, lines.get(i).replace("${ICC_VERSION}", "4.1"));
-				if(lines.get(i).contains("${MKL_VERSION}"))
-					lines.set(i, lines.get(i).replace("${MKL_VERSION}", "4.1"));
-				if(lines.get(i).contains("${TBB_VERSION}"))
-					lines.set(i, lines.get(i).replace("${TBB_VERSION}", "4.1"));
-				}
-				//replacing openmpi params
-				else if(dockerfileName.contains("openmpi_"))
-				{
-				if(lines.get(i).contains("${MPI_VERSION}"))
-					lines.set(i, lines.get(i).replace("${MPI_VERSION}", "4.1"));
-				if(lines.get(i).contains("${MPI_MAJOR_VERSION}"))
-					lines.set(i, lines.get(i).replace("${MPI_MAJOR_VERSION}", "4.1"));
-				if(lines.get(i).contains("${MPI_CONFIGURE_OPTIONS}"))
-					lines.set(i, lines.get(i).replace("${MPI_CONFIGURE_OPTIONS}", "--disable-fortran"));
-				if(lines.get(i).contains("${MPI_MAKE_OPTIONS}"))
-					lines.set(i, lines.get(i).replace("${MPI_MAKE_OPTIONS}", "-j4"));
-				if(lines.get(i).contains("${WORKDIR}"))
-					lines.set(i, lines.get(i).replace("${WORKDIR}", "/project"));
-				if(lines.get(i).contains("${USER}"))
-					lines.set(i, lines.get(i).replace("${USER}", "user"));
-				}
-				
-				//replacing react params
-				else if(dockerfileName.contains("react_"))
-				{
+			{
 				if(lines.get(i).contains("${NODE_VERSION}"))
-					lines.set(i, lines.get(i).replace("${NODE_VERSION}", "4.1"));
-				}
-				//replacing final app
-				else if(dockerfileName.contains("finalMpi_"))
-				{
+					lines.set(i, lines.get(i).replace("${NODE_VERSION}", inputData.getNode_version()));
+			}
+			System.out.println(inputData);
+		}
+		
+		//replacing vars for c
+		if(useCaseId == 2)
+		{
+			cInputDto inputData = (cInputDto)inputDataDetails;
+			for( int i=0; i< lines.size(); i++)
+			{
+				if(lines.get(i).contains("${GCC_VERSION}"))
+					lines.set(i, lines.get(i).replace("${GCC_VERSION}", inputData.getGcc_version()));
+				if(lines.get(i).contains("${FILENAME}"))
+					lines.set(i, lines.get(i).replace("${FILENAME}", "main.c"));
+			}
+			System.out.println(inputData);
+		}
+		
+		//replacing vars for cpp
+		if(useCaseId == 3)
+		{
+			cppInputDto inputData = (cppInputDto)inputDataDetails;
+			for( int i=0; i< lines.size(); i++)
+			{
+				if(lines.get(i).contains("${GCC_VERSION}"))
+					lines.set(i, lines.get(i).replace("${GCC_VERSION}", inputData.getGcc_version()));
+				if(lines.get(i).contains("${FILENAME}"))
+					lines.set(i, lines.get(i).replace("${FILENAME}", "main.cpp"));
+			}
+			System.out.println(inputData);
+		}
+		//replacing vars for intelmpi
+		if(useCaseId == 4)
+		{
+			intelmpiInputDto inputData = (intelmpiInputDto)inputDataDetails;
+			for( int i=0; i< lines.size(); i++)
+			{
+				if(lines.get(i).contains("${MPI_VERSION}"))
+					lines.set(i, lines.get(i).replace("${MPI_VERSION}", inputData.getMpi_developement_version()));
+				if(lines.get(i).contains("${ICC_VERSION}"))
+					lines.set(i, lines.get(i).replace("${ICC_VERSION}", inputData.getIntel_icc_version()));
+				if(lines.get(i).contains("${MKL_VERSION}"))
+					lines.set(i, lines.get(i).replace("${MKL_VERSION}", inputData.getIntel_mkl_version()));
+				if(lines.get(i).contains("${TBB_VERSION}"))
+					lines.set(i, lines.get(i).replace("${TBB_VERSION}", inputData.getIntel_tbb_version()));
+			}
+			System.out.println(inputData);
+		}
+		// replacing vars for mpich
+		if(useCaseId == 5)
+		{
+			mpichInputDto inputData = (mpichInputDto)inputDataDetails;
+			for( int i=0; i< lines.size(); i++)
+			{
+			if(lines.get(i).contains("${MPI_VERSION}"))
+				lines.set(i, lines.get(i).replace("${MPI_VERSION}", inputData.getMpich_version()));
+			if(lines.get(i).contains("${MPI_CONFIGURE_OPTIONS}"))
+				lines.set(i, lines.get(i).replace("${MPI_CONFIGURE_OPTIONS}", inputData.getMpi_configure_options()));
+			if(lines.get(i).contains("${MPI_MAKE_OPTIONS}"))
+				lines.set(i, lines.get(i).replace("${MPI_MAKE_OPTIONS}", inputData.getMpi_make_options()));
+			if(lines.get(i).contains("${WORKDIR}"))
+				lines.set(i, lines.get(i).replace("${WORKDIR}", inputData.getWork_dir()));
+			if(lines.get(i).contains("${USER}"))
+				lines.set(i, lines.get(i).replace("${USER}", inputData.getUser()));
+			}
+			System.out.println(inputData);
+		}
+		
+		// replacing vars for openmpi
+		if(useCaseId == 6)
+		{
+			openmpiInputDto inputData = (openmpiInputDto)inputDataDetails;
+			for( int i=0; i< lines.size(); i++)
+			{
+				if(lines.get(i).contains("${MPI_VERSION}"))
+					lines.set(i, lines.get(i).replace("${MPI_VERSION}", inputData.getOpenmpi_version()));
+				if(lines.get(i).contains("${MPI_MAJOR_VERSION}"))
+					lines.set(i, lines.get(i).replace("${MPI_MAJOR_VERSION}", inputData.getOpenmpi_major_version()));
+				if(lines.get(i).contains("${MPI_CONFIGURE_OPTIONS}"))
+					lines.set(i, lines.get(i).replace("${MPI_CONFIGURE_OPTIONS}", inputData.getMpi_configure_options()));
+				if(lines.get(i).contains("${MPI_MAKE_OPTIONS}"))
+					lines.set(i, lines.get(i).replace("${MPI_MAKE_OPTIONS}", inputData.getMpi_make_options()));
 				if(lines.get(i).contains("${WORKDIR}"))
-					lines.set(i, lines.get(i).replace("${WORKDIR}", "/project"));
+					lines.set(i, lines.get(i).replace("${WORKDIR}", inputData.getWork_dir()));
 				if(lines.get(i).contains("${USER}"))
-					lines.set(i, lines.get(i).replace("${USER}", "user"));
-				if(lines.get(i).contains("${MPI_IMAGETAG}"))
-					lines.set(i, lines.get(i).replace("${MPI_IMAGETAG}", "4.1"));
-				if(lines.get(i).contains("${MPI_IMAGENAME}"))
-					lines.set(i, lines.get(i).replace("${MPI_IMAGENAME}", "4.1"));
-				
-				}
-				}
+					lines.set(i, lines.get(i).replace("${USER}", inputData.getUser()));
+			}
+			System.out.println(inputData);
+		}
+		
+		
+//			for( int i=0; i< lines.size(); i++)
+//				{
+//				//replacing final app
+//				if(dockerfileName.contains("finalMpi_"))
+//				{
+//				if(lines.get(i).contains("${WORKDIR}"))
+//					lines.set(i, lines.get(i).replace("${WORKDIR}", "/project"));
+//				if(lines.get(i).contains("${USER}"))
+//					lines.set(i, lines.get(i).replace("${USER}", "user"));
+//				if(lines.get(i).contains("${MPI_IMAGETAG}"))
+//					lines.set(i, lines.get(i).replace("${MPI_IMAGETAG}", "4.1"));
+//				if(lines.get(i).contains("${MPI_IMAGENAME}"))
+//					lines.set(i, lines.get(i).replace("${MPI_IMAGENAME}", "4.1"));
+//				
+//				}
+//				}
 		
 		return lines;
 	}

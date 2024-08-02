@@ -1,0 +1,17 @@
+{
+    "mpi_developement_version":"2021.1.1",
+    "intel_mkl_version":"2021.1.1",
+    "intel_icc_version": "2021.1.1",
+    "intel_tbb_version": "2021.1.1",
+    "base_image_name":"mpich",
+    "base_image_tag": "1",
+
+
+    "gitUrl": "git URL",
+    "app_image_name": "ain",
+    "app_image_tag":"ait",
+    "app_docker_commands": ["com1", "com2"],
+    "dockeruser": "sumithpe",
+    "dockerpassword": "paswwww",
+    "app_sin_image_name": "asin"
+}

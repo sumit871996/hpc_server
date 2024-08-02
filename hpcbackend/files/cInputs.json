@@ -1,0 +1,13 @@
+{
+    "gcc_version": "14.1.0",
+
+    "gitUrl": "git URL",
+    "source_code": "string",       
+    "app_image_name": "ain", 
+    "app_image_tag": "ait",   
+    "app_docker_commands": ["com1","com2"],        
+    "dockeruser": "",     
+    "dockerpassword": "",
+    "app_sin_image_name": "asin"
+
+}
