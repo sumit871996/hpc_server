@@ -54,3 +54,25 @@ RUN yum install -y file strace bc numactl numactl-libs librdmacm libibverbs pciu
 RUN ln -s /usr/lib64/libnuma.so.1 /usr/lib64/libnuma.so
 RUN cd /usr/bin && \\
     ln -s /opt/osu/libexec/osu-micro-benchmarks/mpi/*/* .
+
+FROM final AS appimage
+
+RUN yum install -y unzip
+
+#### ADD DEFAULT USER ####
+ARG USER
+ENV USER ${USER}
+RUN useradd -m ${USER} && chown -R ${USER}:${USER} /home/${USER}
+
+#### CREATE WORKING DIRECTORY FOR USER ####
+ARG WORKDIR
+ENV WORKDIR ${WORKDIR}
+RUN mkdir -p ${WORKDIR} && chown -R ${USER}:${USER} ${WORKDIR}
+
+ENV OPAL_PREFIX=/usr/local
+WORKDIR ${WORKDIR}
+USER ${USER}
+COPY ./application.zip .
+ARG c_file
+RUN unzip -u application.zip && c_file=$(find . -type f -name *.c -print -quit) && mpicc ${c_file} -o application.exe
+CMD ["sh", "-c", "./application.exe 1>&2 & tail -f /dev/null"]

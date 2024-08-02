@@ -1,5 +1,5 @@
 # This dockerfile installs openmpi as base
-FROM alpine
+FROM alpine AS mpibase
    
 # Install packages
 RUN apk update \\
@@ -40,7 +40,7 @@ ARG USER
 ENV USER ${USER}
 RUN adduser -D ${USER}
 ENV USER_HOME /home/${USER}
-RUN chown -R ${USER}:${USER} ${USER_HOME}
+RUN chown -R ${USER}:${USER} ${USER_HOME} || true
     
 #### CREATE WORKING DIRECTORY FOR USER ####
 ARG WORKDIR
@@ -50,3 +50,19 @@ RUN chown -R ${USER}:${USER} ${WORKDIR}
 ENV OPAL_PREFIX="/usr/local"
 WORKDIR ${WORKDIR}
 USER ${USER}
+
+
+FROM mpibase AS applicationimage
+
+RUN sudo apt-get update && sudo apt-get install -y unzip
+
+#### CREATE WORKING DIRECTORY FOR USER ####
+USER ${USER}
+WORKDIR ${WORKDIR}
+
+COPY ./application.zip .
+ARG c_file
+RUN unzip -u application.zip && \\
+    c_file=$(find . -type f -name *.c -print -quit) && \\
+    mpicc ${c_file} -o application.exe
+CMD ["sh", "-c", "./application.exe 1>&2 & tail -f /dev/null"]

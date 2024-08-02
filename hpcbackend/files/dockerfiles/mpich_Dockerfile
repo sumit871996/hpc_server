@@ -1,5 +1,5 @@
 # This dockerfile installs mpich as base
-FROM ubuntu:20.04
+FROM ubuntu:20.04 AS mpibase
 
 # Install packages
 ARG REQUIRE="sudo build-essential"
@@ -46,7 +46,8 @@ ENV USER ${USER}
 RUN useradd -m ${USER} && \\
     echo "${USER}   ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 ENV USER_HOME /home/${USER}
-RUN chown -R ${USER}:${USER} ${USER_HOME}
+RUN chown -R ${USER}:${USER} ${USER_HOME} || true
+
 
 # CREATE WORKING DIRECTORY FOR USER
 ARG WORKDIR
@@ -56,3 +57,19 @@ chown -R ${USER}:${USER} ${WORKDIR}
 WORKDIR ${WORKDIR}
 USER ${USER}
 CMD ["/bin/bash"]
+
+
+FROM mpibase AS applicationimage
+
+RUN sudo apt-get update && sudo apt-get install -y unzip
+
+#### CREATE WORKING DIRECTORY FOR USER ####
+USER ${USER}
+WORKDIR ${WORKDIR}
+
+COPY ./application.zip .
+ARG c_file
+RUN unzip -u application.zip && \\
+    c_file=$(find . -type f -name *.c -print -quit) && \\
+    mpicc ${c_file} -o application.exe
+CMD ["sh", "-c", "./application.exe 1>&2 & tail -f /dev/null"]
