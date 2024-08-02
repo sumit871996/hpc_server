@@ -69,7 +69,6 @@
               "app_image_tag",
               "dockeruser",
               "dockerpassword",
-              "sourcecode_source",
               "app_sin_image_name"
             ],
             "oneOf": [
