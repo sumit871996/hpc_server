@@ -69,7 +69,8 @@
               "app_image_tag",
               "dockeruser",
               "dockerpassword",
-              "sourcecode_source"
+              "sourcecode_source",
+              "app_sin_image_name"
             ],
             "oneOf": [
               {
@@ -97,11 +98,6 @@
               }
             ],
             "properties": {
-              "application_docker_commands": {
-                "type": "string",
-                "title": "Docker commands to run application",
-                "default": ""
-              },
               "app_image_name": {
                 "type": "string",
                 "title": "Application Image Name",

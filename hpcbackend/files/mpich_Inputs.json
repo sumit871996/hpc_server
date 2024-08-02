@@ -1,0 +1,19 @@
+{
+              "mpich_version" : "4.1.2",
+              "mpi_configure_options": "--disable-fortran",
+              "mpi_make_options": "-j4",
+              "user": "user",
+              "work_dir": "/project",
+              "base_image_name":"mpich",
+              "base_image_tag": "1",
+              "gitUrl": "git URL",
+
+
+              "app_image_name": "ain",
+              "app_image_tag": "ait",
+              "app_docker_commands": ["com1", "com2"],
+              "dockeruser": "sumithpe",
+              "dockerpassword": "passwww",
+              "app_sin_image_name":"asin"
+
+  }

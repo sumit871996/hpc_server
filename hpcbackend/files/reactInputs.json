@@ -1,0 +1,11 @@
+{
+    "node_version": "22-alpine3.19",
+    "gitUrl": "git URL",
+     
+    "app_image_name": "ain",
+    "app_image_tag": "ait",
+    "app_docker_commands":["com1", "com2"],
+    "dockeruser": "sumithpe",
+    "dockerpassword": "passww",
+    "app_sin_image_name": "asin"
+}
