@@ -29,6 +29,7 @@ public class WebSecurityConfig {
 	private JWTRequestFilter filter;
 	@Value("${security.enable}")
 	private boolean sec;
+
 	// configure BCryptPassword encoder bean
 	@Bean
 	public PasswordEncoder encoder() {
@@ -37,31 +38,29 @@ public class WebSecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		
 		String path = "/";
-		if(!sec)
-		{
+		if (!sec) {
 			path = "/home/**";
 		}
-		http.cors().and().csrf().disable().
-		exceptionHandling().
-		authenticationEntryPoint((request, response, ex) -> {
+	
+		http.headers().frameOptions().disable()
+		.and().csrf().disable()
+		.exceptionHandling()
+		.authenticationEntryPoint((request, response, ex) -> {
 			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
-		}).
-		and().
-		authorizeRequests()
+		})
+		.and()
+		.authorizeRequests()
 
 //		.requestMatchers("/users/**").hasRole("USER")
 //		.requestMatchers("/home/**").hasAuthority("USER")
 //		.requestMatchers("/", path, "/auth/**").permitAll().
-		.requestMatchers("/", "/auth/**", "/home/**","/form/**","/employee/**","/form/usecases/**","/form/buildandpush/**").permitAll().
-
-		anyRequest().authenticated().
-		and().
-		sessionManagement()
-		.sessionCreationPolicy(SessionCreationPolicy.STATELESS).
-		and()
-		.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
+				.requestMatchers("/","/h2-console/**", "/auth/**", "/home/**", "/form/**", "/employee/**", "/form/usecases/**",
+						"/form/buildandpush/**")
+				.permitAll().
+				anyRequest().authenticated().and().sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+				.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
