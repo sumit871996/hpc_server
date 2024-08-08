@@ -130,8 +130,7 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 1)
 	{
 		reactInputDto inputDataDetails = objectMapper.readValue(inputData, reactInputDto.class);
-		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
-		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(inputDataDetails.getApp_docker_commands().split("\n")));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -143,8 +142,7 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 2)
 	{ 
 		cInputDto inputDataDetails = objectMapper.readValue(inputData, cInputDto.class);
-		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
-		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(inputDataDetails.getApp_docker_commands().split("\n")));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -156,8 +154,7 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 3)
 	{
 		cppInputDto inputDataDetails = objectMapper.readValue(inputData, cppInputDto.class);
-		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
-		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(inputDataDetails.getApp_docker_commands().split("\n")));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -169,8 +166,7 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 4)
 	{
 		intelmpiInputDto inputDataDetails = objectMapper.readValue(inputData, intelmpiInputDto.class);
-		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
-		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(inputDataDetails.getApp_docker_commands().split("\n")));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -182,10 +178,7 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 5)
 	{
 		mpichInputDto inputDataDetails = objectMapper.readValue(inputData, mpichInputDto.class);
-		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
-		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
-		System.out.println(app_docker_commands.get(0));
-		System.out.println(app_docker_commands.get(1));		
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(inputDataDetails.getApp_docker_commands().split("\n")));	
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -197,8 +190,7 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 6)
 	{
 		openmpiInputDto inputDataDetails = objectMapper.readValue(inputData, openmpiInputDto.class);
-		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
-		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(inputDataDetails.getApp_docker_commands().split("\n")));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
