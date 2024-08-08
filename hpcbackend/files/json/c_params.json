@@ -87,7 +87,8 @@
               "dockerpassword": {
                 "type": "string",
                 "title": "Docker Password",
-                "default": ""
+                "default": "",
+                "minLength": 3
               },
               "app_sin_image_name": {
                 "type": "string",
@@ -98,7 +99,12 @@
           }
         },
         "ui_schema": {
-
+          "app_docker_commands": {
+          "ui:widget": "textarea"
+          },
+          "dockerpassword": {
+          "ui:widget": "password"
+          }
         }
       }
     ]

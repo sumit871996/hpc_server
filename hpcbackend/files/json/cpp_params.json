@@ -98,7 +98,12 @@
           }
         },
         "ui_schema": {
-
+          "app_docker_commands": {
+          "ui:widget": "textarea"
+          },
+          "dockerpassword": {
+          "ui:widget": "password"
+          }
         }
       }
     ]

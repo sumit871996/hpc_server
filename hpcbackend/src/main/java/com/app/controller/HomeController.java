@@ -11,38 +11,27 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import org.apache.tomcat.util.json.JSONParser;
-import org.apache.tomcat.util.json.ParseException;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.json.GsonJsonParser;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.app.dao.BuildsRepository;
-import com.app.dao.UsersRepository;
 import com.app.dto.buildResponse;
 import com.app.dto.inputDataDto;
 import com.app.dto.responseDto;
@@ -51,31 +40,23 @@ import com.app.entities.Builds;
 import com.app.entities.Users;
 import com.app.entities.buildStatusEnum;
 import com.app.service.BuildServiceImpl;
-import com.app.service.IBuildService;
-import com.app.service.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import jakarta.websocket.server.PathParam;
 
 @RestController
 @CrossOrigin("*")
 @RequestMapping("/home")
 public class HomeController {
 	
-	@Autowired
-	private ModelMapper mapper;
+//	@Autowired
+//	private ModelMapper mapper;
 
 	@Autowired
 	private BuildsRepository buildsRepo;
 	
-	@Autowired
-	private UsersRepository usersRepo;
+//	@Autowired
+//	private UsersRepository usersRepo;
 	
 	@Autowired
 	private BuildServiceImpl buildService;

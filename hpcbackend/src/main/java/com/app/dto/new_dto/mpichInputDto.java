@@ -3,7 +3,6 @@ package com.app.dto.new_dto;
 import java.util.ArrayList;
 
 import lombok.Data;
-import lombok.Getter;
 @Data
 public class mpichInputDto {
 	public String mpich_version;

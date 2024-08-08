@@ -1,12 +1,9 @@
 package com.app.service.getUseCases;
 
-import java.util.ArrayList;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dto.UseCaseInputDto;
-import com.app.entities.UseCases.Stage;
 import com.app.entities.UseCases.UseCase;
 
 @Service

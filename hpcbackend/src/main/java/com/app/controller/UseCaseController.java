@@ -1,8 +1,5 @@
 package com.app.controller;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,8 +7,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -27,8 +22,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.app.dto.inputDataDto;
-import com.app.dto.responseDto;
 import com.app.dto.new_dto.cInputDto;
 import com.app.dto.new_dto.cppInputDto;
 import com.app.dto.new_dto.intelmpiInputDto;
@@ -48,15 +41,15 @@ public class UseCaseController {
 	
 //@Autowired
 //public getUseCaseServiceImpl getusecaseService;
-private static final String UPLOAD_DIR = "C:"+File.separator+"ProgramData"+File.separator+"zipfiles";
-
-@Autowired
-private ModelMapper mapper;
+//private static final String UPLOAD_DIR = "C:"+File.separator+"ProgramData"+File.separator+"zipfiles";
+//
+//@Autowired
+//private ModelMapper mapper;
 
 @Value("${file.upload.folder}") // Injecting the value of app.greeting from application.properties
 private String file;
 	
-@GetMapping("/getusecases")
+@GetMapping("/getusecases")  // get all usecases available
 public ResponseEntity<?> getusecaseInfo()
 {
 	
@@ -67,8 +60,7 @@ public ResponseEntity<?> getusecaseInfo()
 }
 
 
-
-@GetMapping("/getusecases/{useCaseId}")
+@GetMapping("/getusecases/{useCaseId}")  // get rjsf schema
 public ResponseEntity<?> getusecaseDetails(@PathVariable("useCaseId") Integer useCaseId)
 {
 	String jsonfilename = getFileName(useCaseId, "json");
@@ -78,24 +70,20 @@ public ResponseEntity<?> getusecaseDetails(@PathVariable("useCaseId") Integer us
 	try {
 		Path filepath = Paths.get(file,"json",jsonfilename);
 		Resource resource = new UrlResource(filepath.toUri());
-		
-		System.out.println(filepath);
-		
-		if (resource.exists() || resource.isReadable()) {
-            return ResponseEntity.ok()
+		if(resource.exists() || resource.isReadable()) 
+		{
+         return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                     .body(resource);
 		}
-            else
-            {
-            	return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
+        else
+        {
+          return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 	}
 	catch(IOException e) {
 		return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-	}
-//	return new ResponseEntity<>(file.concat(File.separator).concat("json").concat(File.separator).concat("mpich_params.json"),HttpStatus.OK);
-	
+	}	
 
 }
 
@@ -103,7 +91,7 @@ public ResponseEntity<?> getusecaseDetails(@PathVariable("useCaseId") Integer us
 public ResponseEntity<?> getUsecaseDockerfile(
 		@PathVariable("useCaseId") Integer useCaseId,
 		@RequestPart("inputData") String inputData,
-		@RequestPart("file") MultipartFile file)
+		@RequestPart(value = "file", required = false) MultipartFile file)
 {
 	String dockerfileName = getFileName(useCaseId, "dockerfile");
 	if(dockerfileName == null)
@@ -205,84 +193,45 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	return new ResponseEntity<>(dockerfile,HttpStatus.OK);
 }
 
-@PostMapping("/buildandpush/{useCaseId}")
-public ResponseEntity<?> buildandpush(
-		@PathVariable("useCaseId") Integer useCaseId,
-		@RequestPart("inputData") String inputData,
-		@RequestPart("file") MultipartFile file)
-{
-	System.out.println(inputData);
-	System.out.println(useCaseId);
-	ObjectMapper objectMapper = new ObjectMapper();
-	
-	
-	
-	// process MPICH input DTO
-	if(useCaseId == 5)
-	{
-	mpichInputDto inputDataDetails = null;
-    try {
-		inputDataDetails = objectMapper.readValue(inputData, mpichInputDto.class);
-		if(file == null && inputDataDetails.getGitUrl()==null)
-		return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
-		if(file != null && inputDataDetails.getGitUrl()!=null)
-		return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
-		System.out.println(inputDataDetails);
-	} catch (JsonMappingException e1) {
-		// TODO Auto-generated catch block
-		e1.printStackTrace();
-	} catch (JsonProcessingException e1) {
-		// TODO Auto-generated catch block
-		e1.printStackTrace();
-	}
-	}
-	
-	
-	
-	
-	
-	return new ResponseEntity<>(HttpStatus.OK);
-	
-}
-
-private int parseBuildIdFromJson(String jsonResponse) {
-	  
-    
-    responseDto jsonObject = null;
-	ObjectMapper objectMapper = new ObjectMapper();
-    try {
-    	jsonObject = objectMapper.readValue(jsonResponse, responseDto.class);
-//    	System.out.println(jsonObject.toString());
-    	
-	} catch (JsonMappingException e1) {
-		// TODO Auto-generated catch block
-		System.out.println("deserialize error");
-	} catch (JsonProcessingException e1) {
-		// TODO Auto-generated catch block
-		System.out.println("JsonProcessingException");
-	}
-    return jsonObject.getExecutable().getNumber();
-}
-
-private static void createAndSaveDockerfile(String directoryPath, String fileName, String content) {
-    File directory = new File(directoryPath);
-
-    // Create the directory if it doesn't exist
-    if (!directory.exists()) {
-        directory.mkdirs();
-    }
-
-    File dockerfile = new File(directory, fileName);
-
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(dockerfile))) {
-        // Write the content to the file
-        writer.write(content);
-        System.out.println("Dockerfile created and saved successfully.");
-    } catch (IOException e) {
-        e.printStackTrace();
-        System.err.println("Failed to create and save the Dockerfile.");
-    }
-}
+//@PostMapping("/buildandpush/{useCaseId}")
+//public ResponseEntity<?> buildandpush(
+//		@PathVariable("useCaseId") Integer useCaseId,
+//		@RequestPart("inputData") String inputData,
+//		@RequestPart("file") MultipartFile file)
+//{
+//	System.out.println(inputData);
+//	System.out.println(useCaseId);
+//	ObjectMapper objectMapper = new ObjectMapper();
+//	
+//	
+//	
+//	// process MPICH input DTO
+//	if(useCaseId == 5)
+//	{
+//	mpichInputDto inputDataDetails = null;
+//    try {
+//		inputDataDetails = objectMapper.readValue(inputData, mpichInputDto.class);
+//		if(file == null && inputDataDetails.getGitUrl()==null)
+//		return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
+//		if(file != null && inputDataDetails.getGitUrl()!=null)
+//		return new ResponseEntity<>("Please provide only one code source",HttpStatus.BAD_REQUEST);
+//		System.out.println(inputDataDetails);
+//	} catch (JsonMappingException e1) {
+//		// TODO Auto-generated catch block
+//		e1.printStackTrace();
+//	} catch (JsonProcessingException e1) {
+//		// TODO Auto-generated catch block
+//		e1.printStackTrace();
+//	}
+//	}
+//	
+//	
+//	
+//	
+//	
+//	return new ResponseEntity<>(HttpStatus.OK);
+//	
+//}
 
 
 public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId, Object inputDataDetails) {
@@ -304,7 +253,6 @@ public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId
 				if(lines.get(i).contains("${NODE_VERSION}"))
 					lines.set(i, lines.get(i).replace("${NODE_VERSION}", inputData.getNode_version()));
 			}
-			System.out.println(inputData);
 		}
 		
 		//replacing vars for c
@@ -318,7 +266,6 @@ public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId
 				if(lines.get(i).contains("${FILENAME}"))
 					lines.set(i, lines.get(i).replace("${FILENAME}", "main.c"));
 			}
-			System.out.println(inputData);
 		}
 		
 		//replacing vars for cpp
@@ -332,7 +279,6 @@ public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId
 				if(lines.get(i).contains("${FILENAME}"))
 					lines.set(i, lines.get(i).replace("${FILENAME}", "main.cpp"));
 			}
-			System.out.println(inputData);
 		}
 		//replacing vars for intelmpi
 		if(useCaseId == 4)
@@ -349,7 +295,6 @@ public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId
 				if(lines.get(i).contains("${TBB_VERSION}"))
 					lines.set(i, lines.get(i).replace("${TBB_VERSION}", inputData.getIntel_tbb_version()));
 			}
-			System.out.println(inputData);
 		}
 		// replacing vars for mpich
 		if(useCaseId == 5)
@@ -368,7 +313,6 @@ public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId
 			if(lines.get(i).contains("${USER}"))
 				lines.set(i, lines.get(i).replace("${USER}", inputData.getUser()));
 			}
-			System.out.println(inputData);
 		}
 		
 		// replacing vars for openmpi
@@ -390,7 +334,6 @@ public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId
 				if(lines.get(i).contains("${USER}"))
 					lines.set(i, lines.get(i).replace("${USER}", inputData.getUser()));
 			}
-			System.out.println(inputData);
 		}
 		
 		
