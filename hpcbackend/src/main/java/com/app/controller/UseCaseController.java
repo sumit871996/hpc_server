@@ -1,5 +1,8 @@
 package com.app.controller;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,6 +10,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.app.dto.responseDto;
 import com.app.dto.new_dto.cInputDto;
 import com.app.dto.new_dto.cppInputDto;
 import com.app.dto.new_dto.intelmpiInputDto;
@@ -29,6 +35,7 @@ import com.app.dto.new_dto.mpichInputDto;
 import com.app.dto.new_dto.openmpiInputDto;
 import com.app.dto.new_dto.reactInputDto;
 import com.app.entities.UseCases.UseCasesEnum;
+import com.app.entities.UseCases.UseCasesEnumBean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,7 +55,16 @@ public class UseCaseController {
 
 @Value("${file.upload.folder}") // Injecting the value of app.greeting from application.properties
 private String file;
-	
+
+private static final String UPLOAD_DIR = "C:" + File.separator + "ProgramData" + File.separator + "zipfiles";
+
+@Autowired
+private ModelMapper mapper;
+
+
+@Autowired
+private UseCasesEnumBean useCasesEnumBean;
+
 @GetMapping("/getusecases")  // get all usecases available
 public ResponseEntity<?> getusecaseInfo()
 {
@@ -58,6 +74,11 @@ public ResponseEntity<?> getusecaseInfo()
 	hm.put(env.getUseCaseId(), env.toString());
 	return new ResponseEntity<>(hm,HttpStatus.OK);
 }
+
+
+	// @Autowired
+	// public getUseCaseServiceImpl getusecaseService;
+
 
 
 @GetMapping("/getusecases/{useCaseId}")  // get rjsf schema
@@ -83,8 +104,7 @@ public ResponseEntity<?> getusecaseDetails(@PathVariable("useCaseId") Integer us
 	}
 	catch(IOException e) {
 		return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-	}	
-
+	}
 }
 
 @PostMapping("/getdockerfile/{useCaseId}")
@@ -355,69 +375,232 @@ public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId
 //				}
 		
 		return lines;
-	}
-	catch(IOException e) {
-		return null;
-	}
-}
-private String getFileName(Integer useCaseId, String type)
-{
-	switch(useCaseId)
-	{
-	case 1:
-		if("json" == type.toLowerCase())
-			return "react_params.json";
-		if("dockerfile" == type.toLowerCase())
-			return "react_Dockerfile";
-	case 2:
-		if("json" == type.toLowerCase())
-			return "c_params.json";
-		if("dockerfile" == type.toLowerCase())
-			return "c_Dockerfile";
-	case 3:
-		if("json" == type.toLowerCase())
-			return "cpp_params.json";
-		if("dockerfile" == type.toLowerCase())
-			return "cpp_Dockerfile";
-	case 4:
-		if("json" == type.toLowerCase())
-			return "intelmpi_params.json";
-		if("dockerfile" == type.toLowerCase())
-			return "intelmpi_Dockerfile";
-	case 5:
-		if("dockerfile" == type.toLowerCase())
-			return "mpich_Dockerfile";
-		if("json" == type.toLowerCase())
-			return "mpich_params.json";
-
-	case 6:
-		if("json" == type.toLowerCase())
-			return "openmpi_params.json";
-		if("dockerfile" == type.toLowerCase())
-			return "openmpi_Dockerfile";
-	default:
+		}
+	catch (IOException e) {
 		return null;
 	}
 }
 
-//@PostMapping("/setpipeline/{useCaseId}")
-//public ResponseEntity<?> setpipeline(@RequestBody UseCaseInputDto inputDto, @PathVariable("useCaseId") Integer useCaseId)
-//{
-//	System.out.println(useCaseId);
-//	UseCase usecase = new UseCase();
-//	if(useCaseId == 1)
-//	usecase.setReactUsecase(inputDto);
-//	else
-//	return new ResponseEntity<>("Invalid Parameter", HttpStatus.NOT_ACCEPTABLE);
-//	return new ResponseEntity<>(usecase, HttpStatus.OK);
-//}
-//@PostMapping("/getusecaseparams/{useCaseId}")
-//public ResponseEntity<?> getusecases(@PathVariable("useCaseId") Integer useCaseId)
-//{
-//	return new ResponseEntity<>("", HttpStatus.OK);
-//}
 
+//	@PostMapping("/buildandpush/{useCaseId}")
+//	public ResponseEntity<?> buildandpush(
+//			@PathVariable("useCaseId") Integer useCaseId,
+//			@RequestPart("inputData") String inputData,
+//			@RequestPart("file") MultipartFile file) {
+//		System.out.println(inputData);
+//		System.out.println(useCaseId);
+//		ObjectMapper objectMapper = new ObjectMapper();
+//
+//		// process MPICH input DTO
+//		if (useCaseId == 5) {
+//			mpichInputDto inputDataDetails = null;
+//			try {
+//				inputDataDetails = objectMapper.readValue(inputData, mpichInputDto.class);
+//				if (file == null && inputDataDetails.getGitUrl() == null)
+//					return new ResponseEntity<>("Please provide code source", HttpStatus.BAD_REQUEST);
+//				if (file != null && inputDataDetails.getGitUrl() != null)
+//					return new ResponseEntity<>("Please provide only one code source", HttpStatus.BAD_REQUEST);
+//				System.out.println(inputDataDetails);
+//			} catch (JsonMappingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			} catch (JsonProcessingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//		}
+//
+//		return new ResponseEntity<>(HttpStatus.OK);
+//
+//	}
 
+	private int parseBuildIdFromJson(String jsonResponse) {
 
+		responseDto jsonObject = null;
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			jsonObject = objectMapper.readValue(jsonResponse, responseDto.class);
+			// System.out.println(jsonObject.toString());
+
+		} catch (JsonMappingException e1) {
+			// TODO Auto-generated catch block
+			System.out.println("deserialize error");
+		} catch (JsonProcessingException e1) {
+			// TODO Auto-generated catch block
+			System.out.println("JsonProcessingException");
+		}
+		return jsonObject.getExecutable().getNumber();
+	}
+
+	private static void createAndSaveDockerfile(String directoryPath, String fileName, String content) {
+		File directory = new File(directoryPath);
+
+		// Create the directory if it doesn't exist
+		if (!directory.exists()) {
+			directory.mkdirs();
+		}
+
+		File dockerfile = new File(directory, fileName);
+
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(dockerfile))) {
+			// Write the content to the file
+			writer.write(content);
+			System.out.println("Dockerfile created and saved successfully.");
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.err.println("Failed to create and save the Dockerfile.");
+		}
+	}
+
+//	public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId, Object inputDataDetails) {
+//		ArrayList<String> lines = new ArrayList<>();
+//		try {
+//			Path filepath = Paths.get(file, "dockerfiles", dockerfileName);
+//			Resource resource = new UrlResource(filepath.toUri());
+//
+//			if (resource.exists() || resource.isReadable()) {
+//				lines.addAll(Files.readAllLines(filepath));
+//			}
+//
+//			// replacing vars for react
+//			if (useCaseId == 1) {
+//				reactInputDto inputData = (reactInputDto) inputDataDetails;
+//				for (int i = 0; i < lines.size(); i++) {
+//					if (lines.get(i).contains("${NODE_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${NODE_VERSION}", inputData.getNode_version()));
+//				}
+//				System.out.println(inputData);
+//			}
+//
+//			// replacing vars for c
+//			if (useCaseId == 2) {
+//				cInputDto inputData = (cInputDto) inputDataDetails;
+//				for (int i = 0; i < lines.size(); i++) {
+//					if (lines.get(i).contains("${GCC_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${GCC_VERSION}", inputData.getGcc_version()));
+//					if (lines.get(i).contains("${FILENAME}"))
+//						lines.set(i, lines.get(i).replace("${FILENAME}", "main.c"));
+//				}
+//				System.out.println(inputData);
+//			}
+//
+//			// replacing vars for cpp
+//			if (useCaseId == 3) {
+//				cppInputDto inputData = (cppInputDto) inputDataDetails;
+//				for (int i = 0; i < lines.size(); i++) {
+//					if (lines.get(i).contains("${GCC_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${GCC_VERSION}", inputData.getGcc_version()));
+//					if (lines.get(i).contains("${FILENAME}"))
+//						lines.set(i, lines.get(i).replace("${FILENAME}", "main.cpp"));
+//				}
+//				System.out.println(inputData);
+//			}
+//			// replacing vars for intelmpi
+//			if (useCaseId == 4) {
+//				intelmpiInputDto inputData = (intelmpiInputDto) inputDataDetails;
+//				for (int i = 0; i < lines.size(); i++) {
+//					if (lines.get(i).contains("${MPI_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${MPI_VERSION}", inputData.getMpi_developement_version()));
+//					if (lines.get(i).contains("${ICC_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${ICC_VERSION}", inputData.getIntel_icc_version()));
+//					if (lines.get(i).contains("${MKL_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${MKL_VERSION}", inputData.getIntel_mkl_version()));
+//					if (lines.get(i).contains("${TBB_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${TBB_VERSION}", inputData.getIntel_tbb_version()));
+//				}
+//				System.out.println(inputData);
+//			}
+//			// replacing vars for mpich
+//			if (useCaseId == 5) {
+//				mpichInputDto inputData = (mpichInputDto) inputDataDetails;
+//				for (int i = 0; i < lines.size(); i++) {
+//					if (lines.get(i).contains("${MPI_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${MPI_VERSION}", inputData.getMpich_version()));
+//					if (lines.get(i).contains("${MPI_CONFIGURE_OPTIONS}"))
+//						lines.set(i,
+//								lines.get(i).replace("${MPI_CONFIGURE_OPTIONS}", inputData.getMpi_configure_options()));
+//					if (lines.get(i).contains("${MPI_MAKE_OPTIONS}"))
+//						lines.set(i, lines.get(i).replace("${MPI_MAKE_OPTIONS}", inputData.getMpi_make_options()));
+//					if (lines.get(i).contains("${WORKDIR}"))
+//						lines.set(i, lines.get(i).replace("${WORKDIR}", inputData.getWork_dir()));
+//					if (lines.get(i).contains("${USER}"))
+//						lines.set(i, lines.get(i).replace("${USER}", inputData.getUser()));
+//				}
+//				System.out.println(inputData);
+//			}
+//
+//			// replacing vars for openmpi
+//			if (useCaseId == 6) {
+//				openmpiInputDto inputData = (openmpiInputDto) inputDataDetails;
+//				for (int i = 0; i < lines.size(); i++) {
+//					if (lines.get(i).contains("${MPI_VERSION}"))
+//						lines.set(i, lines.get(i).replace("${MPI_VERSION}", inputData.getOpenmpi_version()));
+//					if (lines.get(i).contains("${MPI_MAJOR_VERSION}"))
+//						lines.set(i,
+//								lines.get(i).replace("${MPI_MAJOR_VERSION}", inputData.getOpenmpi_major_version()));
+//					if (lines.get(i).contains("${MPI_CONFIGURE_OPTIONS}"))
+//						lines.set(i,
+//								lines.get(i).replace("${MPI_CONFIGURE_OPTIONS}", inputData.getMpi_configure_options()));
+//					if (lines.get(i).contains("${MPI_MAKE_OPTIONS}"))
+//						lines.set(i, lines.get(i).replace("${MPI_MAKE_OPTIONS}", inputData.getMpi_make_options()));
+//					if (lines.get(i).contains("${WORKDIR}"))
+//						lines.set(i, lines.get(i).replace("${WORKDIR}", inputData.getWork_dir()));
+//					if (lines.get(i).contains("${USER}"))
+//						lines.set(i, lines.get(i).replace("${USER}", inputData.getUser()));
+//				}
+//				System.out.println(inputData);
+//			}
+//
+//			// for( int i=0; i< lines.size(); i++)
+//			// {
+//			// //replacing final app
+//			// if(dockerfileName.contains("finalMpi_"))
+//			// {
+//			// if(lines.get(i).contains("${WORKDIR}"))
+//			// lines.set(i, lines.get(i).replace("${WORKDIR}", "/project"));
+//			// if(lines.get(i).contains("${USER}"))
+//			// lines.set(i, lines.get(i).replace("${USER}", "user"));
+//			// if(lines.get(i).contains("${MPI_IMAGETAG}"))
+//			// lines.set(i, lines.get(i).replace("${MPI_IMAGETAG}", "4.1"));
+//			// if(lines.get(i).contains("${MPI_IMAGENAME}"))
+//			// lines.set(i, lines.get(i).replace("${MPI_IMAGENAME}", "4.1"));
+//			//
+//			// }
+//			// }
+//
+//			return lines;
+//		} catch (IOException e) {
+//			return null;
+//		}
+//	}
+
+	private String getFileName(Integer useCaseId, String type) {
+		if (type.toLowerCase() == "json") {
+			return useCasesEnumBean.getByUseCaseId(useCaseId).getJsonSchemaName();
+		}
+		if (type.toLowerCase() == "dockerfile") {
+			return useCasesEnumBean.getByUseCaseId(useCaseId).getDockerFileName();
+		}
+		return null;
+	}
+
+	// @PostMapping("/setpipeline/{useCaseId}")
+	// public ResponseEntity<?> setpipeline(@RequestBody UseCaseInputDto inputDto,
+	// @PathVariable("useCaseId") Integer useCaseId)
+	// {
+	// System.out.println(useCaseId);
+	// UseCase usecase = new UseCase();
+	// if(useCaseId == 1)
+	// usecase.setReactUsecase(inputDto);
+	// else
+	// return new ResponseEntity<>("Invalid Parameter", HttpStatus.NOT_ACCEPTABLE);
+	// return new ResponseEntity<>(usecase, HttpStatus.OK);
+	// }
+	// @PostMapping("/getusecaseparams/{useCaseId}")
+	// public ResponseEntity<?> getusecases(@PathVariable("useCaseId") Integer
+	// useCaseId)
+	// {
+	// return new ResponseEntity<>("", HttpStatus.OK);
+	// }
 
 }
