@@ -4,11 +4,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +20,17 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.app.dto.inputDataDto;
 import com.app.dto.responseDto;
 import com.app.dto.new_dto.cInputDto;
 import com.app.dto.new_dto.cppInputDto;
@@ -37,8 +40,11 @@ import com.app.dto.new_dto.openmpiInputDto;
 import com.app.dto.new_dto.reactInputDto;
 import com.app.entities.UseCases.UseCasesEnum;
 import com.app.entities.UseCases.UseCasesEnumBean;
+import com.app.utils.CommonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
@@ -82,10 +88,8 @@ public class UseCaseController {
 			System.out.println(filepath.toAbsolutePath());
 
 			if (resource.exists() || resource.isReadable()) {
-				return ResponseEntity.ok()
-						.header(HttpHeaders.CONTENT_DISPOSITION,
-								"attachment; filename=\"" + resource.getFilename() + "\"")
-						.body(resource);
+				return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+						"attachment; filename=\"" + resource.getFilename() + "\"").body(resource);
 			} else {
 				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			}
@@ -98,10 +102,8 @@ public class UseCaseController {
 	}
 
 	@PostMapping("/getdockerfile/{useCaseId}")
-	public ResponseEntity<?> getUsecaseDockerfile(
-			@PathVariable("useCaseId") Integer useCaseId,
-			@RequestPart("inputData") String inputData,
-			@RequestPart("file") MultipartFile file) {
+	public ResponseEntity<?> getUsecaseDockerfile(@PathVariable("useCaseId") Integer useCaseId,
+			@RequestPart("inputData") String inputData, @RequestPart("file") MultipartFile file) {
 		String dockerfileName = getFileName(useCaseId, "dockerfile");
 		if (dockerfileName == null)
 			return new ResponseEntity<>("Invalid ID", HttpStatus.NOT_ACCEPTABLE);
@@ -190,11 +192,57 @@ public class UseCaseController {
 		return new ResponseEntity<>(dockerfile, HttpStatus.OK);
 	}
 
+	@PostMapping("/dockerfile/{useCaseId}")
+	public ResponseEntity<?> generateDockerFileFromUseCase(@PathVariable("useCaseId") Integer useCaseId,
+			@RequestBody JsonNode inputData) {
+
+		String dockerfileName = getFileName(useCaseId, "dockerfile");
+
+		if (dockerfileName == null) {
+			return new ResponseEntity<>("Invalid ID", HttpStatus.NOT_ACCEPTABLE);
+		}
+		try {
+			String fileName = getFileName(useCaseId, "dockerfile");
+
+			if (fileName != null) {
+				Path filepath = Paths.get(file, "dockerfiles", fileName);
+				System.out.println(filepath.toAbsolutePath().toString());
+
+				Resource resource = new UrlResource(filepath.toUri());
+				if (resource.exists() && resource.isReadable()) {
+					String dockerFileString = resource.getContentAsString(Charset.defaultCharset());
+					ObjectMapper objectMapper = new ObjectMapper();
+					Map<String, Object> map = objectMapper.readValue(inputData.toString(),
+							new TypeReference<Map<String, Object>>() {
+							});
+
+					String updatedDockerfile = CommonUtils.replaceDockerArgs(dockerFileString, map);
+					byte[] fileContent = updatedDockerfile.getBytes();
+
+					// Set up response headers
+					HttpHeaders headers = new HttpHeaders();
+					headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Dockerfile");
+					headers.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+					headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileContent.length));
+
+					// Return the file as a byte array
+					return new ResponseEntity<>(fileContent, headers, HttpStatus.OK);
+				} else {
+					return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			System.out.println(e.toString());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+
 	@PostMapping("/buildandpush/{useCaseId}")
-	public ResponseEntity<?> buildandpush(
-			@PathVariable("useCaseId") Integer useCaseId,
-			@RequestPart("inputData") String inputData,
-			@RequestPart("file") MultipartFile file) {
+	public ResponseEntity<?> buildandpush(@PathVariable("useCaseId") Integer useCaseId,
+			@RequestPart("inputData") String inputData, @RequestPart("file") MultipartFile file) {
 		System.out.println(inputData);
 		System.out.println(useCaseId);
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -383,12 +431,16 @@ public class UseCaseController {
 	}
 
 	private String getFileName(Integer useCaseId, String type) {
-		if (type.toLowerCase() == "json") {
-			return useCasesEnumBean.getByUseCaseId(useCaseId).getJsonSchemaName();
+		UseCasesEnum useCase = useCasesEnumBean.getByUseCaseId(useCaseId);
+		if (useCase != null) {
+			if (type.toLowerCase() == "json") {
+				return useCasesEnumBean.getByUseCaseId(useCaseId).getJsonSchemaName();
+			}
+			if (type.toLowerCase() == "dockerfile") {
+				return useCasesEnumBean.getByUseCaseId(useCaseId).getDockerFileName();
+			}
 		}
-		if (type.toLowerCase() == "dockerfile") {
-			return useCasesEnumBean.getByUseCaseId(useCaseId).getDockerFileName();
-		}
+
 		return null;
 	}
 
