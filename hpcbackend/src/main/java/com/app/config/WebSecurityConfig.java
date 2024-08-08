@@ -54,8 +54,7 @@ public class WebSecurityConfig {
 //		.requestMatchers("/users/**").hasRole("USER")
 //		.requestMatchers("/home/**").hasAuthority("USER")
 //		.requestMatchers("/", path, "/auth/**").permitAll().
-				.requestMatchers("/","/h2-console/**", "/auth/**", "/home/**", "/form/**", "/employee/**", "/form/usecases/**",
-						"/form/buildandpush/**")
+				.requestMatchers("/","/h2-console/**", "/auth/**", "/home/**")
 				.permitAll().
 				anyRequest().authenticated().and().sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()

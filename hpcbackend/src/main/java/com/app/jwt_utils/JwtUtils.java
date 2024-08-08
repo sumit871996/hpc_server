@@ -18,7 +18,7 @@ public class JwtUtils {
 	private String jwtSecret;
 
 	@Value("${EXP_TIMEOUT}")
-	private int jwtExpirationMs;
+	private long jwtExpirationMs;
 
 	// will be invoked by REST Controller(authentication controller) , upon
 	// successful authentication
