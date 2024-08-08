@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,12 +27,19 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 	private JwtUtils utils;
 	@Autowired
 	private UserDetailsService userDetailsService;
+	
+	@Value("${security.enable}")
+	private boolean sec;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		log.info("in once per request filter");
 		// get authorization header n check if not null n starting with Bearer
+		if(!sec)
+			filterChain.doFilter(request, response);
+		else
+		{
 		String header = request.getHeader("Authorization");
 		if (header != null && header.startsWith("Bearer ")) {
 			// Bearer token present --> extract n validate it
@@ -65,6 +73,7 @@ public class JWTRequestFilter extends OncePerRequestFilter {
 			log.error("Request header DOES NOT contain a Bearer Token");
 		//pass the request to the next filter in the chain
 		filterChain.doFilter(request, response);
+		}
 
 	}
 

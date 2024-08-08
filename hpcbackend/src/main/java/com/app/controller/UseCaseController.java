@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -115,6 +116,8 @@ public ResponseEntity<?> getUsecaseDockerfile(
 		@RequestPart("inputData") String inputData,
 		@RequestPart(value = "file", required = false) MultipartFile file)
 {
+	
+	
 	String dockerfileName = getFileName(useCaseId, "dockerfile");
 	if(dockerfileName == null)
 	return new ResponseEntity<>("Invalid ID", HttpStatus.NOT_ACCEPTABLE);
@@ -127,6 +130,8 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 1)
 	{
 		reactInputDto inputDataDetails = objectMapper.readValue(inputData, reactInputDto.class);
+		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -138,6 +143,8 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 2)
 	{ 
 		cInputDto inputDataDetails = objectMapper.readValue(inputData, cInputDto.class);
+		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -149,6 +156,8 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 3)
 	{
 		cppInputDto inputDataDetails = objectMapper.readValue(inputData, cppInputDto.class);
+		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -160,6 +169,8 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 4)
 	{
 		intelmpiInputDto inputDataDetails = objectMapper.readValue(inputData, intelmpiInputDto.class);
+		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -171,6 +182,10 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 5)
 	{
 		mpichInputDto inputDataDetails = objectMapper.readValue(inputData, mpichInputDto.class);
+		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
+		System.out.println(app_docker_commands.get(0));
+		System.out.println(app_docker_commands.get(1));		
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)
@@ -182,7 +197,8 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	if(useCaseId == 6)
 	{
 		openmpiInputDto inputDataDetails = objectMapper.readValue(inputData, openmpiInputDto.class);
-		System.out.println(inputDataDetails);
+		String[] linesAppDockerCommands = inputDataDetails.getApp_docker_commands().split("\n");
+		ArrayList<String> app_docker_commands = new ArrayList<String>(Arrays.asList(linesAppDockerCommands));
 		if(file == null && inputDataDetails.getGitUrl()==null)
 			return new ResponseEntity<>("Please provide code source",HttpStatus.BAD_REQUEST);
 		if(file != null && inputDataDetails.getGitUrl()!=null)

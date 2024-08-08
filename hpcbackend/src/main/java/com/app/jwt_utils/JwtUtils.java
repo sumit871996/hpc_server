@@ -19,6 +19,9 @@ public class JwtUtils {
 
 	@Value("${EXP_TIMEOUT}")
 	private long jwtExpirationMs;
+	
+	@Value("${security.enable}")
+	private boolean sec;
 
 	// will be invoked by REST Controller(authentication controller) , upon
 	// successful authentication
@@ -47,6 +50,8 @@ public class JwtUtils {
 
 	// this method will be invoked by our custom filter
 	public boolean validateJwtToken(String authToken) {
+		if(!sec) { System.out.println("sec enable false");
+			return true;}
 		try {
 			Jwts.parser().// Returns a new JwtParser instance used to parse JWT strings.
 					setSigningKey(jwtSecret).// Sets the signing key used to verify JWT digital signature.
