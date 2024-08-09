@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 @RestController
 @CrossOrigin("*")
@@ -116,6 +117,7 @@ public ResponseEntity<?> getUsecaseDockerfile(
 		@RequestPart("inputData") String inputData,
 		@RequestPart(value = "file", required = false) MultipartFile file)
 {
+	System.out.println(inputData);
 	
 	
 	String dockerfileName = getFileName(useCaseId, "dockerfile");
@@ -203,6 +205,12 @@ public ResponseEntity<?> getUsecaseDockerfile(
 	{
 		n.printStackTrace();
 		return new ResponseEntity<>("Missing fields",HttpStatus.BAD_REQUEST);
+	}
+	catch (UnrecognizedPropertyException up)
+	{
+		up.printStackTrace();
+		return new ResponseEntity<>("Please provide input in proper formatting",HttpStatus.BAD_REQUEST);
+	
 	}
 	catch (MismatchedInputException e2)
 	{
