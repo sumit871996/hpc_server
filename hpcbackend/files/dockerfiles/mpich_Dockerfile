@@ -18,7 +18,7 @@ ARG MPI_VERSION
 ARG MPI_CONFIGURE_OPTIONS
 ARG MPI_MAKE_OPTIONS
 
-# Download, build, and install MPICH
+# Download and build and install MPICH
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y wget && \\
     mkdir /tmp/mpich-src && \\
     cd /tmp/mpich-src && \\

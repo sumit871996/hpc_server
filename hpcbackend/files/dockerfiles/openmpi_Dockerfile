@@ -14,7 +14,7 @@ ARG MPI_MAJOR_VERSION
 ARG MPI_CONFIGURE_OPTIONS
 ARG MPI_MAKE_OPTIONS
     
-# Download, build, and install OPENMPI
+# Download and build and install OPENMPI
 RUN mkdir /tmp/openmpi-src
 WORKDIR /tmp/openmpi-src
 RUN wget https://download.open-mpi.org/release/open-mpi/${MPI_MAJOR_VERSION}/openmpi-${MPI_VERSION}.tar.gz \\

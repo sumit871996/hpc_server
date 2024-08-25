@@ -30,7 +30,6 @@ public class CommonUtils {
         String regex = "(ARG)\\s+(\\w+)";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(input);
-
         // StringBuilder to build the resulting string
         StringBuilder result = new StringBuilder();
 
@@ -38,13 +37,14 @@ public class CommonUtils {
         while (matcher.find()) {
             result.append(input, lastEnd, matcher.start());
             String argKey = matcher.group(2);
-
+            
             if (replacements.containsKey(argKey)) {
                 result.append(matcher.group(1))
                       .append(" ")
                       .append(argKey)
                       .append("=")
                       .append(replacements.get(argKey));
+                System.out.println(result);
             } else {
                 result.append(matcher.group(0)); // No replacement, append the whole match
             }

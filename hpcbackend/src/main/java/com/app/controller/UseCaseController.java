@@ -118,6 +118,7 @@ public ResponseEntity<?> getUsecaseDockerfile(
 		@RequestPart(value = "file", required = false) MultipartFile file)
 {
 	System.out.println(inputData);
+	System.out.println(file);
 	
 	
 	String dockerfileName = getFileName(useCaseId, "dockerfile");
@@ -626,9 +627,16 @@ public ArrayList<String> readDockerfile(String dockerfileName, Integer useCaseId
 					if (resource.exists() && resource.isReadable()) {
 						String dockerFileString = resource.getContentAsString(Charset.defaultCharset());
 						ObjectMapper objectMapper = new ObjectMapper();
-						Map<String, Object> map = objectMapper.readValue(inputData.toString(),
+						Map<String, Object> mapMapped = objectMapper.readValue(inputData.toString(),
 								new TypeReference<Map<String, Object>>() {
 								});
+
+				        Map<String, Object> map = new HashMap<>();
+
+				        // Iterate over the original map and convert keys to uppercase
+				        for (Map.Entry<String, Object> entry : mapMapped.entrySet()) {
+				        	map.put(entry.getKey().toUpperCase(), entry.getValue());
+				        }
 
 						String updatedDockerfile = CommonUtils.replaceDockerArgs(dockerFileString, map);
 						byte[] fileContent = updatedDockerfile.getBytes();
