@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,10 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +35,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.app.dao.BuildsRepository;
+import com.app.dto.buildResponse;
+import com.app.dto.inputDataDto;
 import com.app.dto.responseDto;
 import com.app.dto.new_dto.cInputDto;
 import com.app.dto.new_dto.cppInputDto;
@@ -39,6 +49,9 @@ import com.app.dto.new_dto.intelmpiInputDto;
 import com.app.dto.new_dto.mpichInputDto;
 import com.app.dto.new_dto.openmpiInputDto;
 import com.app.dto.new_dto.reactInputDto;
+import com.app.entities.Builds;
+import com.app.entities.Users;
+import com.app.entities.buildStatusEnum;
 import com.app.entities.UseCases.UseCasesEnum;
 import com.app.entities.UseCases.UseCasesEnumBean;
 import com.app.utils.CommonUtils;
@@ -61,7 +74,8 @@ public class UseCaseController {
 //
 //@Autowired
 //private ModelMapper mapper;
-
+	@Autowired
+	private BuildsRepository buildsRepo;
 @Value("${file.upload.folder}") // Injecting the value of app.greeting from application.properties
 private String file;
 
@@ -110,6 +124,166 @@ public ResponseEntity<?> getusecaseDetails(@PathVariable("useCaseId") Integer us
 		return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }
+
+@PostMapping("/buildandpush")
+
+public ResponseEntity<?> getSecurity(
+		@RequestPart("inputData") String inputData,
+		@RequestPart("file") MultipartFile file
+		) {
+	
+	inputDataDto inputDataDetails = null;
+	ObjectMapper objectMapper = new ObjectMapper();
+    try {
+		inputDataDetails = objectMapper.readValue(inputData, inputDataDto.class);
+	} catch (JsonMappingException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	} catch (JsonProcessingException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	}
+	
+	
+	System.out.println(inputDataDetails);
+	
+	String jenkinsUrl = "http://localhost:8080"; 
+    String jobName = "dockerbuildimage"; 
+    String jenkinsuser= "admin";
+    String jenkinsapitoken = "110caaad1b23d8a52d1088d98c642ad92c";
+
+    String apiUrl = jenkinsUrl + "/job/" + jobName + "/buildWithParameters";
+
+    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+    requestFactory.setOutputStreaming(false);
+    RestTemplate restTemplate = new RestTemplate(requestFactory);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setBasicAuth(jenkinsuser, jenkinsapitoken);
+    if (file.isEmpty()) {
+        return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
+    }
+	
+	try {
+        byte[] bytes = file.getBytes();
+        File uploadDir = new File(UPLOAD_DIR);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+        
+        System.out.println(UPLOAD_DIR);
+
+        Path path = Paths.get(UPLOAD_DIR + File.separator + file.getOriginalFilename());
+        System.out.println(java.nio.file.Files.write(path, bytes));
+        
+        
+        String fileName = inputDataDetails.getDockerfilename();
+
+        // Create the Dockerfile content by joining array elements with new lines
+        String dockerfileContentString = String.join(System.lineSeparator(), inputDataDetails.getDockerfile());
+
+        // Create and save the Dockerfile
+        createAndSaveDockerfile(UPLOAD_DIR, fileName, dockerfileContentString);
+        
+//        String fileNamebase = inputDataDetails.getBasedockerfilename();
+
+        // Create the Dockerfile content by joining array elements with new lines
+//        String dockerfileContentStringbase = String.join(System.lineSeparator(), inputDataDetails.getBasedockerfile());
+
+        // Create and save the Dockerfile
+//        createAndSaveDockerfile(UPLOAD_DIR, fileNamebase, dockerfileContentStringbase);
+        
+  
+//        System.out.println(inputDataDetails.getImagetag());
+//        System.out.println(inputDataDetails.getBaseimagetag());
+        System.out.println(inputDataDetails.getBuildcommand());
+//        System.out.println(inputDataDetails.getBasebuildcommand());
+        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+        map.add("dockeruser", inputDataDetails.getDockeruser());
+        map.add("dockerpassword", inputDataDetails.getDockerpassword());
+        map.add("imagename", inputDataDetails.getImagename());
+        map.add("imagetag", inputDataDetails.getImagetag());	
+        map.add("dockerfile", String.join(",", inputDataDetails.getDockerfile()));
+        map.add("DOCKERFILE_NAME", inputDataDetails.getDockerfilename());
+        map.add("DOCKER_BUILD_COMMAND", inputDataDetails.getBuildcommand());
+//        map.add("baseimagename", inputDataDetails.getBaseimagename());
+//        map.add("baseimagetag", inputDataDetails.getBaseimagetag());	
+//        map.add("basedockerfile", String.join(",", inputDataDetails.getBasedockerfile()));
+//        map.add("BASE_DOCKERFILE_NAME", inputDataDetails.getBasedockerfilename());
+//        map.add("BASE_DOCKER_BUILD_COMMAND", inputDataDetails.getBasebuildcommand());
+        map.add("BASE_PATH", UPLOAD_DIR);
+        map.add("ZIP_FILE_NAME", file.getOriginalFilename());
+
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
+
+        // Trigger the Jenkins pipeline
+        
+        try {
+        ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+        System.out.println("HTTP Status Code: " + response);
+        String location = response.getHeaders().getLocation().toString();
+
+        String[] parts = location.split("/");
+        String itemNumber = parts[parts.length - 1];
+        for(String part : parts)
+        System.out.println(part);
+        
+        String queueItemUrl = "http://localhost:8080/queue/item/" + itemNumber + "/api/json";
+//        ResponseEntity<String> queueItemResponse = restTemplate.getForEntity(queueItemUrl, String.class);
+//        String queueItemBody = queueItemResponse.getBody().toString();
+        
+//        System.out.println(queueItemBody + "hii");
+//        System.out.println(queueItemUrl);
+        
+        int maxRetries = 10;  // Maximum number of retries
+        int retryInterval = 5000;  // Interval between retries in milliseconds
+
+        int retries = 0;
+
+        String queueItemBody = null;
+        while (retries < maxRetries) {
+            // Poll the /queue/item/71/api/json endpoint to get build details
+            ResponseEntity<String> queueItemResponse = restTemplate.getForEntity(queueItemUrl, String.class);
+            queueItemBody = queueItemResponse.getBody();
+            
+            System.out.println(queueItemBody);
+
+            // Check if "executable" field is present in the JSON response
+            if (queueItemBody.contains("executable")) {
+            	System.out.println(queueItemBody);
+                break;  // Exit the loop if the build has started running
+            }
+            // Wait before the next retry
+            try {
+                Thread.sleep(retryInterval);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            retries++;
+        }
+        int buildId = 0;
+        if (retries == maxRetries) {
+            // Handle the case where the build didn't start within the specified retries
+            System.out.println("Build did not start within the specified retries.");
+        } else {
+            // Build has started running, you can now extract the build ID
+            buildId = parseBuildIdFromJson(queueItemBody);
+            System.out.println("Build ID: " + buildId);
+        }
+        buildResponse buildResp = new buildResponse();
+        buildResp.setBuildId(buildId);
+		return new ResponseEntity<>(buildResp, response.getStatusCode());
+        }
+        catch(RestClientException e) {
+        	e.printStackTrace();
+            return new ResponseEntity<>("Failed to run pipeline", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
+    } catch (IOException e) {
+        e.printStackTrace();
+        return new ResponseEntity<>("Failed to upload the file", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
 
 @PostMapping("/getdockerfile/{useCaseId}")
 public ResponseEntity<?> getUsecaseDockerfile(

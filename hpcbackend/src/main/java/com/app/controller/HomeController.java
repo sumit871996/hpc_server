@@ -71,178 +71,178 @@ public class HomeController {
 	
 	
 	
-	@PostMapping("/buildandpush/{user_id}")
-
-	public ResponseEntity<?> getSecurity(
-			@RequestPart("inputData") String inputData,
-			@RequestPart("file") MultipartFile file,
-			@PathVariable("user_id") Long user_id
-			) {
-		
-		inputDataDto inputDataDetails = null;
-		ObjectMapper objectMapper = new ObjectMapper();
-        try {
-			inputDataDetails = objectMapper.readValue(inputData, inputDataDto.class);
-		} catch (JsonMappingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (JsonProcessingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		
-		System.out.println(inputDataDetails);
-		
-		String jenkinsUrl = "http://localhost:8080"; 
-        String jobName = "dockerbuild"; 
-        String jenkinsuser= "admin";
-        String jenkinsapitoken = "11b4a3a442653e7ea62d7c715eb3b94ee4";
-
-        String apiUrl = jenkinsUrl + "/job/" + jobName + "/buildWithParameters";
-
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setOutputStreaming(false);
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(jenkinsuser, jenkinsapitoken);
-        if (file.isEmpty()) {
-            return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
-        }
-		
-		try {
-            byte[] bytes = file.getBytes();
-            File uploadDir = new File(UPLOAD_DIR);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-            
-            System.out.println(UPLOAD_DIR);
-
-            Path path = Paths.get(UPLOAD_DIR + File.separator + file.getOriginalFilename());
-            System.out.println(java.nio.file.Files.write(path, bytes));
-            
-            
-            String fileName = inputDataDetails.getDockerfilename();
-
-            // Create the Dockerfile content by joining array elements with new lines
-            String dockerfileContentString = String.join(System.lineSeparator(), inputDataDetails.getDockerfile());
-
-            // Create and save the Dockerfile
-            createAndSaveDockerfile(UPLOAD_DIR, fileName, dockerfileContentString);
-            
-            String fileNamebase = inputDataDetails.getBasedockerfilename();
-
-            // Create the Dockerfile content by joining array elements with new lines
-            String dockerfileContentStringbase = String.join(System.lineSeparator(), inputDataDetails.getBasedockerfile());
-
-            // Create and save the Dockerfile
-            createAndSaveDockerfile(UPLOAD_DIR, fileNamebase, dockerfileContentStringbase);
-            
-      
-//            System.out.println(inputDataDetails.getImagetag());
-//            System.out.println(inputDataDetails.getBaseimagetag());
-            System.out.println(inputDataDetails.getBuildcommand());
-            System.out.println(inputDataDetails.getBasebuildcommand());
-            MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
-            map.add("dockeruser", inputDataDetails.getDockeruser());
-            map.add("dockerpassword", inputDataDetails.getDockerpassword());
-            map.add("imagename", inputDataDetails.getImagename());
-            map.add("imagetag", inputDataDetails.getImagetag());	
-            map.add("dockerfile", String.join(",", inputDataDetails.getDockerfile()));
-            map.add("DOCKERFILE_NAME", inputDataDetails.getDockerfilename());
-            map.add("DOCKER_BUILD_COMMAND", inputDataDetails.getBuildcommand());
-            map.add("baseimagename", inputDataDetails.getBaseimagename());
-            map.add("baseimagetag", inputDataDetails.getBaseimagetag());	
-            map.add("basedockerfile", String.join(",", inputDataDetails.getBasedockerfile()));
-            map.add("BASE_DOCKERFILE_NAME", inputDataDetails.getBasedockerfilename());
-            map.add("BASE_DOCKER_BUILD_COMMAND", inputDataDetails.getBasebuildcommand());
-            map.add("BASE_PATH", UPLOAD_DIR);
-            map.add("ZIP_FILE_NAME", file.getOriginalFilename());
-
-            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
-
-            // Trigger the Jenkins pipeline
-            
-            try {
-            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
-            System.out.println("HTTP Status Code: " + response);
-            String location = response.getHeaders().getLocation().toString();
-
-            String[] parts = location.split("/");
-            String itemNumber = parts[parts.length - 1];
-            for(String part : parts)
-            System.out.println(part);
-            
-            String queueItemUrl = "http://localhost:8080/queue/item/" + itemNumber + "/api/json";
-//            ResponseEntity<String> queueItemResponse = restTemplate.getForEntity(queueItemUrl, String.class);
-//            String queueItemBody = queueItemResponse.getBody().toString();
-            
-//            System.out.println(queueItemBody + "hii");
-//            System.out.println(queueItemUrl);
-            
-            int maxRetries = 10;  // Maximum number of retries
-            int retryInterval = 5000;  // Interval between retries in milliseconds
-
-            int retries = 0;
- 
-            String queueItemBody = null;
-            while (retries < maxRetries) {
-                // Poll the /queue/item/71/api/json endpoint to get build details
-                ResponseEntity<String> queueItemResponse = restTemplate.getForEntity(queueItemUrl, String.class);
-                queueItemBody = queueItemResponse.getBody();
-                
-                System.out.println(queueItemBody);
-
-                // Check if "executable" field is present in the JSON response
-                if (queueItemBody.contains("executable")) {
-                	System.out.println(queueItemBody);
-                    break;  // Exit the loop if the build has started running
-                }
-                // Wait before the next retry
-                try {
-                    Thread.sleep(retryInterval);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                retries++;
-            }
-            int buildId = 0;
-            if (retries == maxRetries) {
-                // Handle the case where the build didn't start within the specified retries
-                System.out.println("Build did not start within the specified retries.");
-            } else {
-                // Build has started running, you can now extract the build ID
-                buildId = parseBuildIdFromJson(queueItemBody);
-                System.out.println("Build ID: " + buildId);
-            }
-         
-            buildResponse buildResp = new buildResponse();
-            buildResp.setBuildId(buildId);
-            Users user= new Users();
-            
-            user.setUserId(user_id);
-            
-            Builds builds=new Builds();
-            builds.setBuildId(buildId);
-            builds.setFinalBuildStatus(buildStatusEnum.INPROGRESS);
-            builds.setTimestamp(LocalDateTime.now());
-            builds.setUser(user);
-            builds.setDocekerUser(inputDataDetails.getDockeruser());
-            buildsRepo.save(builds);
-    		return new ResponseEntity<>(buildResp, response.getStatusCode());
-            }
-            catch(RestClientException e) {
-            	e.printStackTrace();
-                return new ResponseEntity<>("Failed to run pipeline", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Failed to upload the file", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-	}
-	
+//	@PostMapping("/buildandpush/{user_id}")
+//
+//	public ResponseEntity<?> getSecurity(
+//			@RequestPart("inputData") String inputData,
+//			@RequestPart("file") MultipartFile file,
+//			@PathVariable("user_id") Long user_id
+//			) {
+//		
+//		inputDataDto inputDataDetails = null;
+//		ObjectMapper objectMapper = new ObjectMapper();
+//        try {
+//			inputDataDetails = objectMapper.readValue(inputData, inputDataDto.class);
+//		} catch (JsonMappingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (JsonProcessingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		
+//		
+//		System.out.println(inputDataDetails);
+//		
+//		String jenkinsUrl = "http://localhost:8080"; 
+//        String jobName = "dockerbuild"; 
+//        String jenkinsuser= "admin";
+//        String jenkinsapitoken = "11b4a3a442653e7ea62d7c715eb3b94ee4";
+//
+//        String apiUrl = jenkinsUrl + "/job/" + jobName + "/buildWithParameters";
+//
+//        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+//        requestFactory.setOutputStreaming(false);
+//        RestTemplate restTemplate = new RestTemplate(requestFactory);
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setBasicAuth(jenkinsuser, jenkinsapitoken);
+//        if (file.isEmpty()) {
+//            return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
+//        }
+//		
+//		try {
+//            byte[] bytes = file.getBytes();
+//            File uploadDir = new File(UPLOAD_DIR);
+//            if (!uploadDir.exists()) {
+//                uploadDir.mkdirs();
+//            }
+//            
+//            System.out.println(UPLOAD_DIR);
+//
+//            Path path = Paths.get(UPLOAD_DIR + File.separator + file.getOriginalFilename());
+//            System.out.println(java.nio.file.Files.write(path, bytes));
+//            
+//            
+//            String fileName = inputDataDetails.getDockerfilename();
+//
+//            // Create the Dockerfile content by joining array elements with new lines
+//            String dockerfileContentString = String.join(System.lineSeparator(), inputDataDetails.getDockerfile());
+//
+//            // Create and save the Dockerfile
+//            createAndSaveDockerfile(UPLOAD_DIR, fileName, dockerfileContentString);
+//            
+//            String fileNamebase = inputDataDetails.getBasedockerfilename();
+//
+//            // Create the Dockerfile content by joining array elements with new lines
+//            String dockerfileContentStringbase = String.join(System.lineSeparator(), inputDataDetails.getBasedockerfile());
+//
+//            // Create and save the Dockerfile
+//            createAndSaveDockerfile(UPLOAD_DIR, fileNamebase, dockerfileContentStringbase);
+//            
+//      
+////            System.out.println(inputDataDetails.getImagetag());
+////            System.out.println(inputDataDetails.getBaseimagetag());
+//            System.out.println(inputDataDetails.getBuildcommand());
+//            System.out.println(inputDataDetails.getBasebuildcommand());
+//            MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+//            map.add("dockeruser", inputDataDetails.getDockeruser());
+//            map.add("dockerpassword", inputDataDetails.getDockerpassword());
+//            map.add("imagename", inputDataDetails.getImagename());
+//            map.add("imagetag", inputDataDetails.getImagetag());	
+//            map.add("dockerfile", String.join(",", inputDataDetails.getDockerfile()));
+//            map.add("DOCKERFILE_NAME", inputDataDetails.getDockerfilename());
+//            map.add("DOCKER_BUILD_COMMAND", inputDataDetails.getBuildcommand());
+//            map.add("baseimagename", inputDataDetails.getBaseimagename());
+//            map.add("baseimagetag", inputDataDetails.getBaseimagetag());	
+//            map.add("basedockerfile", String.join(",", inputDataDetails.getBasedockerfile()));
+//            map.add("BASE_DOCKERFILE_NAME", inputDataDetails.getBasedockerfilename());
+//            map.add("BASE_DOCKER_BUILD_COMMAND", inputDataDetails.getBasebuildcommand());
+//            map.add("BASE_PATH", UPLOAD_DIR);
+//            map.add("ZIP_FILE_NAME", file.getOriginalFilename());
+//
+//            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
+//
+//            // Trigger the Jenkins pipeline
+//            
+//            try {
+//            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+//            System.out.println("HTTP Status Code: " + response);
+//            String location = response.getHeaders().getLocation().toString();
+//
+//            String[] parts = location.split("/");
+//            String itemNumber = parts[parts.length - 1];
+//            for(String part : parts)
+//            System.out.println(part);
+//            
+//            String queueItemUrl = "http://localhost:8080/queue/item/" + itemNumber + "/api/json";
+////            ResponseEntity<String> queueItemResponse = restTemplate.getForEntity(queueItemUrl, String.class);
+////            String queueItemBody = queueItemResponse.getBody().toString();
+//            
+////            System.out.println(queueItemBody + "hii");
+////            System.out.println(queueItemUrl);
+//            
+//            int maxRetries = 10;  // Maximum number of retries
+//            int retryInterval = 5000;  // Interval between retries in milliseconds
+//
+//            int retries = 0;
+// 
+//            String queueItemBody = null;
+//            while (retries < maxRetries) {
+//                // Poll the /queue/item/71/api/json endpoint to get build details
+//                ResponseEntity<String> queueItemResponse = restTemplate.getForEntity(queueItemUrl, String.class);
+//                queueItemBody = queueItemResponse.getBody();
+//                
+//                System.out.println(queueItemBody);
+//
+//                // Check if "executable" field is present in the JSON response
+//                if (queueItemBody.contains("executable")) {
+//                	System.out.println(queueItemBody);
+//                    break;  // Exit the loop if the build has started running
+//                }
+//                // Wait before the next retry
+//                try {
+//                    Thread.sleep(retryInterval);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                retries++;
+//            }
+//            int buildId = 0;
+//            if (retries == maxRetries) {
+//                // Handle the case where the build didn't start within the specified retries
+//                System.out.println("Build did not start within the specified retries.");
+//            } else {
+//                // Build has started running, you can now extract the build ID
+//                buildId = parseBuildIdFromJson(queueItemBody);
+//                System.out.println("Build ID: " + buildId);
+//            }
+//         
+//            buildResponse buildResp = new buildResponse();
+//            buildResp.setBuildId(buildId);
+//            Users user= new Users();
+//            
+//            user.setUserId(user_id);
+//            
+//            Builds builds=new Builds();
+//            builds.setBuildId(buildId);
+//            builds.setFinalBuildStatus(buildStatusEnum.INPROGRESS);
+//            builds.setTimestamp(LocalDateTime.now());
+//            builds.setUser(user);
+//            builds.setDocekerUser(inputDataDetails.getDockeruser());
+//            buildsRepo.save(builds);
+//    		return new ResponseEntity<>(buildResp, response.getStatusCode());
+//            }
+//            catch(RestClientException e) {
+//            	e.printStackTrace();
+//                return new ResponseEntity<>("Failed to run pipeline", HttpStatus.INTERNAL_SERVER_ERROR);
+//            }
+//            
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return new ResponseEntity<>("Failed to upload the file", HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//	}
+//	
 	private int parseBuildIdFromJson(String jsonResponse) {
   
 	    

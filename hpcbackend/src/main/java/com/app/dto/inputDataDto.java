@@ -24,10 +24,10 @@ public class inputDataDto {
 	public String buildcommand;
 	public String dockerfilename;
 	
-	public String baseimagename;
-	public String baseimagetag;
-	public List<String> basedockerfile;
-	public String basebuildcommand;
-	public String basedockerfilename;
+//	public String baseimagename;
+//	public String baseimagetag;
+//	public List<String> basedockerfile;
+//	public String basebuildcommand;
+//	public String basedockerfilename;
 
 }
