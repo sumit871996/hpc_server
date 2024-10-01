@@ -132,7 +132,7 @@ public ResponseEntity<?> getSecurity(
 		@RequestPart("file") MultipartFile file
 		) {
 	
-	System.out.println(inputData);
+	System.out.println(file);
 	
 	inputDataDto inputDataDetails = null;
 	ObjectMapper objectMapper = new ObjectMapper();

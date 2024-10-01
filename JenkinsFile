@@ -32,14 +32,12 @@ pipeline {
                             bat "xcopy ${params.BASE_PATH}\\mpi-test ${WORK_DIR}\\mpi-test /E /I /Y"
                            
                             bat "copy ${params.BASE_PATH}\\${params.DOCKERFILE_NAME} ${WORK_DIR}\\${params.DOCKERFILE_NAME}"
-                            bat "copy ${params.BASE_PATH}\\${params.BASE_DOCKERFILE_NAME} ${WORK_DIR}\\${params.BASE_DOCKERFILE_NAME}"
                             bat "copy ${params.BASE_PATH}\\${params.ZIP_FILE_NAME} ${WORK_DIR}\\application.zip"
                             
                         } else {
                             sh "cp ${params.BASE_PATH}/mpi-test/* ${WORK_DIR}/mpi-test/*"
                             sh "cp ${params.BASE_PATH}/${params.ZIP_FILE_NAME} ${WORK_DIR}/application.zip"
                             sh "cp ${params.BASE_PATH}/${params.DOCKERFILE_NAME} ${WORK_DIR}/${params.DOCKERFILE_NAME}"
-                            sh "cp ${params.BASE_PATH}/${params.BASE_DOCKERFILE_NAME} ${WORK_DIR}/${params.BASE_DOCKERFILE_NAME}"
                         }
                     }
                 }
