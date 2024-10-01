@@ -132,6 +132,8 @@ public ResponseEntity<?> getSecurity(
 		@RequestPart("file") MultipartFile file
 		) {
 	
+	System.out.println(inputData);
+	
 	inputDataDto inputDataDetails = null;
 	ObjectMapper objectMapper = new ObjectMapper();
     try {
@@ -150,7 +152,7 @@ public ResponseEntity<?> getSecurity(
 	String jenkinsUrl = "http://localhost:8080"; 
     String jobName = "dockerbuildimage"; 
     String jenkinsuser= "admin";
-    String jenkinsapitoken = "110caaad1b23d8a52d1088d98c642ad92c";
+    String jenkinsapitoken = "112e4c7995f6b151471d2049e88430d707";
 
     String apiUrl = jenkinsUrl + "/job/" + jobName + "/buildWithParameters";
 

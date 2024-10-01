@@ -35,8 +35,7 @@
               "app_image_name",
               "app_image_tag",
               "dockeruser",
-              "dockerpassword",
-              "app_sin_image_name"
+              "dockerpassword"
             ],
             "oneOf": [
               {
@@ -89,11 +88,6 @@
                 "title": "Docker Password",
                 "default": "",
                 "minLength": 3
-              },
-              "app_sin_image_name": {
-                "type": "string",
-                "title": "Application Singularity Image Name",
-                "default": "asin"
               }
             }
           }
