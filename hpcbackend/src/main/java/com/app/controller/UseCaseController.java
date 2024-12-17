@@ -173,8 +173,8 @@ public ResponseEntity<?> getSecurity(
         }
         
         System.out.println(UPLOAD_DIR);
-
-        Path path = Paths.get(UPLOAD_DIR + File.separator + file.getOriginalFilename());
+        String fn = inputDataDetails.getImagename()+ inputDataDetails.getImagetag()+".zip";
+        Path path = Paths.get(UPLOAD_DIR + File.separator + fn);
         System.out.println(java.nio.file.Files.write(path, bytes));
         
         
@@ -213,7 +213,7 @@ public ResponseEntity<?> getSecurity(
 //        map.add("BASE_DOCKERFILE_NAME", inputDataDetails.getBasedockerfilename());
 //        map.add("BASE_DOCKER_BUILD_COMMAND", inputDataDetails.getBasebuildcommand());
         map.add("BASE_PATH", UPLOAD_DIR);
-        map.add("ZIP_FILE_NAME", file.getOriginalFilename());
+        map.add("ZIP_FILE_NAME", fn);
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(map, headers);
 
